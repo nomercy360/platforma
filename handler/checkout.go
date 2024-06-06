@@ -19,17 +19,16 @@ type CartItem struct {
 }
 
 type CheckoutRequest struct {
-	Items     []CartItem             `json:"items" validate:"required,dive,required"`
+	CartID    int64                  `json:"cart_id"`
 	Provider  string                 `json:"provider" validate:"required"`
 	Name      string                 `json:"name" validate:"required"`
-	Email     string                 `json:"email" validate:"required"`
+	Email     string                 `json:"email" validate:"required,email"`
 	Phone     string                 `json:"phone" validate:"required"`
 	Country   string                 `json:"country" validate:"required"`
 	Address   string                 `json:"address" validate:"required"`
 	ZIP       string                 `json:"zip" validate:"required"`
 	PromoCode *string                `json:"promo_code"`
 	Metadata  map[string]interface{} `json:"metadata"`
-	Currency  string                 `json:"currency" validate:"required"`
 }
 
 type CheckoutResponse struct {
@@ -67,12 +66,24 @@ func (h Handler) Checkout(c echo.Context) error {
 	} else if err != nil {
 		return terrors.InternalServerError(err, "failed to get customer")
 	}
+	cart, err := h.st.GetCartByID(req.CartID)
+
+	if err != nil && errors.Is(err, db.ErrNotFound) {
+		return terrors.NotFound(err, "cart not found")
+	} else if err != nil {
+		return terrors.InternalServerError(err, "failed to get cart")
+	}
 
 	newOrder := db.Order{
-		CustomerID:    customer.ID,
-		Status:        "created",
-		PaymentStatus: "pending",
-		Metadata:      req.Metadata,
+		CustomerID:     customer.ID,
+		Status:         "created",
+		PaymentStatus:  "pending",
+		ShippingStatus: "pending",
+		Metadata:       req.Metadata,
+		CartID:         cart.ID,
+		Total:          cart.Total,
+		Subtotal:       cart.Subtotal,
+		Currency:       cart.Currency,
 	}
 
 	order, err := h.st.CreateOrder(newOrder)
@@ -81,79 +92,40 @@ func (h Handler) Checkout(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to create order")
 	}
 
-	var total, subtotal int
-
-	for _, item := range req.Items {
-		product, err := h.st.GetProduct(db.GetProductQuery{ID: item.ProductID})
-
-		if err != nil && errors.Is(err, db.ErrNotFound) {
-			return terrors.NotFound(err, "product not found")
-		} else if err != nil {
-			return terrors.InternalServerError(err, "failed to get product")
-		}
-
-		for _, variant := range product.Variants {
-			if variant.ID == item.VariantID {
-				if variant.Quantity < item.Quantity {
-					return terrors.BadRequest(errors.New("quantity not available"), "quantity not available")
-				}
-
-				subtotal += product.Price * item.Quantity
-				total += product.Price * item.Quantity
-
-				li := db.LineItem{
-					VariantID: variant.ID,
-					Quantity:  item.Quantity,
-					Price:     product.Price,
-					Currency:  req.Currency,
-					OrderID:   order.ID,
-				}
-
-				if err := h.st.SaveLineItem(li); err != nil {
-					return terrors.InternalServerError(err, "failed to save line item")
-				}
-
-				break
-			}
-		}
+	if err := h.st.UpdateLineItemsOrderID(cart.ID, order.ID); err != nil {
+		return terrors.InternalServerError(err, "failed to update line items order id")
 	}
 
-	if req.PromoCode != nil {
-		disc, err := h.st.GetDiscountByCode(*req.PromoCode)
-
-		if err != nil && errors.Is(err, db.ErrNotFound) {
-			return terrors.NotFound(err, "discount not found")
-		} else if err != nil {
-			return terrors.InternalServerError(err, "failed to get discount")
-		}
-
-		// calculate total
-		if disc.Value > 0 {
-			switch disc.Type {
-			case "percentage":
-				total = total - (total * disc.Value / 100)
-			case "fixed":
-				total = total - disc.Value
-			}
-
-			// update usage count
-			if err := h.st.UpdateDiscountUsageCount(disc.ID); err != nil {
-				return terrors.InternalServerError(err, "failed to update discount usage count")
-			}
-
-			// save order discount
-			order.DiscountID = &disc.ID
-		}
-	}
-
-	order.Total = total
-	order.Subtotal = subtotal
-
-	order, err = h.st.UpdateOrder(order)
-
-	if err != nil {
-		return terrors.InternalServerError(err, "failed to update order")
-	}
+	//if req.PromoCode != nil {
+	//	disc, err := h.st.GetDiscountByCode(*req.PromoCode)
+	//
+	//	if err != nil && errors.Is(err, db.ErrNotFound) {
+	//		return terrors.NotFound(err, "discount not found")
+	//	} else if err != nil {
+	//		return terrors.InternalServerError(err, "failed to get discount")
+	//	}
+	//
+	//	// calculate total
+	//	if disc.Value > 0 {
+	//		switch disc.Type {
+	//		case "percentage":
+	//			total = total - (total * disc.Value / 100)
+	//		case "fixed":
+	//			total = total - disc.Value
+	//		}
+	//
+	//		// update usage count
+	//		if err := h.st.UpdateDiscountUsageCount(disc.ID); err != nil {
+	//			return terrors.InternalServerError(err, "failed to update discount usage count")
+	//		}
+	//
+	//		// save order discount
+	//		order.DiscountID = &disc.ID
+	//	}
+	//}
+	//
+	//order.Total = total
+	//order.Subtotal = subtotal
 
 	paymentRequest := payment.BepaidTokenRequest{
 		Checkout: payment.BepaidCheckout{
@@ -164,8 +136,8 @@ func (h Handler) Checkout(c echo.Context) error {
 				NotificationUrl: "https://d421-125-24-110-63.ngrok-free.app/webhook/bepaid",
 			},
 			Order: payment.BepaidOrder{
-				Amount:      order.Total,
-				Currency:    req.Currency,
+				Amount:      order.Total * 100,
+				Currency:    order.Currency,
 				Description: fmt.Sprintf("Order #%d", order.ID),
 				TrackingID:  strconv.FormatInt(order.ID, 10),
 			},

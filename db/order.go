@@ -41,6 +41,7 @@ type Order struct {
 	Total          int        `db:"total" json:"total"`
 	Subtotal       int        `db:"subtotal" json:"subtotal"`
 	DiscountID     *int64     `db:"discount_id" json:"discount_id"`
+	Currency       string     `db:"currency" json:"currency"`
 	Metadata       Object     `db:"metadata" json:"metadata"`
 	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
@@ -63,6 +64,7 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 			   o.created_at,
 			   o.updated_at,
 			   o.deleted_at,
+			   o.currency,
 			   o.metadata
 		FROM orders o
 		WHERE o.id = ?;`
@@ -82,6 +84,7 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 		&order.CreatedAt,
 		&order.UpdatedAt,
 		&order.DeletedAt,
+		&order.Currency,
 		&order.Metadata,
 	)
 
@@ -96,11 +99,11 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 
 func (s Storage) CreateOrder(o Order) (*Order, error) {
 	query := `
-		INSERT INTO orders (customer_id, cart_id, status, payment_status, shipping_status, total, subtotal, discount_id, metadata)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+		INSERT INTO orders (customer_id, cart_id, status, payment_status, shipping_status, total, subtotal, discount_id, currency, metadata)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 	`
 
-	res, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.Metadata)
+	res, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.Currency, o.Metadata)
 	if err != nil {
 		return nil, err
 	}

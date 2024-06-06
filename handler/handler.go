@@ -27,10 +27,13 @@ type storage interface {
 	GetCustomerByID(id int64) (*db.Customer, error)
 	SaveCustomer(c db.Customer) (*db.Customer, error)
 	CreateOrder(o db.Order) (*db.Order, error)
-	GetDiscountByCode(code string) (*db.Discount, error)
+	GetDiscount(query db.DiscountQuery) (*db.Discount, error)
 	UpdateDiscountUsageCount(id int64) error
 	UpdateOrder(o *db.Order) (*db.Order, error)
 	GetOrderByID(id int64) (*db.Order, error)
+	UpdateLineItemsOrderID(cartID, orderID int64) error
+	UpdateCartDiscount(cartID, discountID int64) error
+	DropCartDiscount(cartID int64) error
 }
 
 type JWTClaims struct {

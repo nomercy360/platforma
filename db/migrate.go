@@ -54,14 +54,13 @@ func (s Storage) Migrate() error {
 		CREATE TABLE IF NOT EXISTS cart (
 		    id INTEGER PRIMARY KEY,
 		    customer_id INTEGER,
-		    total INTEGER,
-		    subtotal INTEGER,
-		    discount INTEGER,
+		    discount_id INTEGER,
 		    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    deleted_at TIMESTAMP,
 		    context TEXT,
-		    FOREIGN KEY (customer_id) REFERENCES customers (id)
+		    FOREIGN KEY (customer_id) REFERENCES customers (id),
+		    FOREIGN KEY (discount_id) REFERENCES discounts (id)
 		);
 
 		CREATE TABLE IF NOT EXISTS line_items (
@@ -70,14 +69,13 @@ func (s Storage) Migrate() error {
 		    order_id INTEGER,
 		    variant_id INTEGER,
 		    quantity INTEGER,
-		    price INTEGER,
-		    currency TEXT,
 		    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    deleted_at TIMESTAMP,
 		    FOREIGN KEY (cart_id) REFERENCES cart (id),
 		    FOREIGN KEY (variant_id) REFERENCES product_variants (id),
-		    FOREIGN KEY (order_id) REFERENCES orders (id)
+		    FOREIGN KEY (order_id) REFERENCES orders (id),
+		    UNIQUE(cart_id, variant_id)
 		);
 
 		
@@ -88,6 +86,7 @@ func (s Storage) Migrate() error {
 		    discount_id INTEGER,
 		    status TEXT,
 		    payment_status TEXT,
+		    currency TEXT,
 		    shipping_status TEXT,
 		    total INTEGER,
 		    subtotal INTEGER,
@@ -104,22 +103,15 @@ func (s Storage) Migrate() error {
 		    id INTEGER PRIMARY KEY,
 		    value INTEGER,
 		    code TEXT,
-		    type TEXT,
-		    is_active BOOLEAN,
-		    starts_at TIMESTAMP,
+		    type TEXT DEFAULT 'percentage',
+		    is_active BOOLEAN DEFAULT TRUE,
+		    starts_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    ends_at TIMESTAMP,
-		    usage_limit INTEGER,
-		    usage_count INTEGER,
+		    usage_limit INTEGER DEFAULT 0,
+		    usage_count INTEGER DEFAULT 0,
 		    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    deleted_at TIMESTAMP
-		);
-
-		CREATE TABLE IF NOT EXISTS order_discounts (
-		    order_id INTEGER,
-		    discount_id INTEGER,
-		    FOREIGN KEY (order_id) REFERENCES orders (id),
-		    FOREIGN KEY (discount_id) REFERENCES discounts (id)
 		);
  	`
 

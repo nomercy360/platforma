@@ -19,16 +19,40 @@ type Discount struct {
 	Value      int        `db:"value" json:"value"`
 }
 
-func (s Storage) GetDiscountByCode(code string) (*Discount, error) {
+func (d Discount) IsValid() bool {
+	now := time.Now()
+
+	// should be active, not expired, and not reached usage limit - if limit is 0, it means unlimited
+	return d.IsActive &&
+		d.StartsAt.Before(now) &&
+		(d.EndsAt == nil || d.EndsAt.After(now)) &&
+		(d.UsageLimit == 0 || d.UsageCount < d.UsageLimit)
+}
+
+type DiscountQuery struct {
+	Code string
+	ID   int64
+}
+
+func (s Storage) GetDiscount(query DiscountQuery) (*Discount, error) {
 	var discount Discount
 
-	query := `
+	var args interface{}
+
+	q := `
 		SELECT id, code, is_active, type, usage_limit, usage_count, starts_at, ends_at, created_at, updated_at, deleted_at, value
 		FROM discounts
-		WHERE code = ?;
 	`
 
-	err := s.db.QueryRow(query, code).Scan(
+	if query.Code != "" {
+		q += " WHERE code = ?"
+		args = query.Code
+	} else {
+		q += " WHERE id = ?"
+		args = query.ID
+	}
+
+	err := s.db.QueryRow(q, args).Scan(
 		&discount.ID,
 		&discount.Code,
 		&discount.IsActive,

@@ -132,7 +132,7 @@ func main() {
 		log.Fatalf("Failed to parse config: %v\n", err)
 	}
 
-	sql, err := db.New()
+	sql, err := db.ConnectDB("./app.db")
 
 	if err != nil {
 		e.Logger.Fatalf("failed to connect to db: %v", err)
@@ -164,6 +164,9 @@ func main() {
 	g.POST("/cart", h.CreateCart)
 	g.GET("/cart/:id", h.GetCart)
 	g.POST("/checkout", h.Checkout)
+	g.POST("/cart/:id/discounts", h.ApplyDiscount)
+	g.POST("/cart/:id/products", h.AddItemToCart)
+	g.DELETE("/cart/:id/discounts", h.DropDiscount)
 
 	//g.PUT("/cart/:id/products", h.AddProductToCart)
 	//g.DELETE("/cart/:id/products/:product_id", h.RemoveProductFromCart)
