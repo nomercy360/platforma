@@ -15,7 +15,14 @@ COPY . /app/
 RUN go mod tidy && \
     go install -ldflags='-s -w -extldflags "-static"' ./main.go
 
-FROM scratch
+FROM alpine:3.19
+
+WORKDIR /app
+
+RUN apk add --no-cache \
+    ca-certificates \
+    curl \
+    bash
 
 COPY --from=build /go/bin/main /app/main
 
