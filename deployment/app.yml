@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: clan-api
+  name: clan-api
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: clan-api
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        service: clan-api
+    spec:
+      containers:
+        - image: maksim1111/clan-api:latest
+          name: clan-api
+          imagePullPolicy: Always
+          command: [ "/app/api" ]
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+          envFrom:
+            - secretRef:
+                name: clan-api-secrets
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: clan-api
+  name: clan-api
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    service: clan-api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: clan-api
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: fm-api.mxksim.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: clan-api
+                port:
+                  number: 8080

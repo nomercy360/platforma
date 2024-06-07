@@ -19,7 +19,7 @@ func (s Storage) Migrate() error {
 		    product_id INTEGER,
 		    id INTEGER PRIMARY KEY,
 		    name TEXT,
-		    quantity INTEGER
+		    available INTEGER DEFAULT 0
 		);
 
 		CREATE TABLE IF NOT EXISTS product_prices (

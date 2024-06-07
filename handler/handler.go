@@ -35,6 +35,7 @@ type storage interface {
 	UpdateLineItemsOrderID(cartID, orderID int64) error
 	UpdateCartDiscount(cartID, discountID int64) error
 	DropCartDiscount(cartID int64) error
+	UpdateLineItemQuantity(li int64, quantity int) error
 }
 
 type JWTClaims struct {

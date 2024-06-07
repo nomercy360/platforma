@@ -30,6 +30,15 @@ func BadRequest(err error, message string) *Error {
 	}
 }
 
+func Conflict(err error, message string) *Error {
+	return &Error{
+		Code:    http.StatusConflict,
+		Err:     err,
+		Message: message,
+	}
+
+}
+
 func InternalServerError(err error, message string) *Error {
 	return &Error{
 		Code:    http.StatusInternalServerError,

@@ -75,8 +75,10 @@ func (h Handler) AddItemToCart(c echo.Context) error {
 		CartID:    &id,
 		VariantID: item.VariantID,
 		Quantity:  item.Quantity,
-	}); err != nil {
-		return terrors.InternalServerError(err, "failed to add item to cart")
+	}); err != nil && errors.Is(err, db.ErrAlreadyExists) {
+		return terrors.Conflict(err, "failed to save line item")
+	} else if err != nil {
+		return terrors.InternalServerError(err, "failed to save line item")
 	}
 
 	cart, err := h.st.GetCartByID(id, langFromContext(c))
@@ -171,6 +173,43 @@ func (h Handler) DropDiscount(c echo.Context) error {
 
 	if err := h.st.DropCartDiscount(cartID); err != nil {
 		return terrors.InternalServerError(err, "failed to drop cart discount")
+	}
+
+	cart, err := h.st.GetCartByID(cartID, langFromContext(c))
+
+	if err != nil && errors.Is(err, db.ErrNotFound) {
+		return terrors.NotFound(err, "cart not found")
+	} else if err != nil {
+		return terrors.InternalServerError(err, "failed to get cart")
+	}
+
+	return c.JSON(http.StatusOK, cart)
+}
+
+type UpdateCartItemRequest struct {
+	Quantity int `json:"quantity" validate:"required,min=1"`
+}
+
+func (h Handler) UpdateCartItem(c echo.Context) error {
+	cartID, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	itemID, _ := strconv.ParseInt(c.Param("item_id"), 10, 64)
+
+	if itemID == 0 || cartID == 0 {
+		return terrors.BadRequest(errors.New("invalid cart or item id"), "invalid cart or item id")
+	}
+
+	var req UpdateCartItemRequest
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if err := h.st.UpdateLineItemQuantity(itemID, req.Quantity); err != nil {
+		return terrors.InternalServerError(err, "failed to update item quantity")
 	}
 
 	cart, err := h.st.GetCartByID(cartID, langFromContext(c))

@@ -44,9 +44,9 @@ type Product struct {
 }
 
 type Variant struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	Quantity int    `json:"quantity"`
+	ID        int64  `json:"id"`
+	Name      string `json:"name"`
+	Available int    `json:"available"`
 }
 
 func listProductQuery(locale string) string {

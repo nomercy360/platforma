@@ -22,13 +22,17 @@ func (s Storage) SaveLineItem(li LineItem) error {
 	query := `
 		INSERT INTO line_items (cart_id, order_id, variant_id, quantity)
 		VALUES (?, ?, ?, ?)
-		ON CONFLICT(cart_id, variant_id) DO UPDATE SET
-		    quantity = line_items.quantity + EXCLUDED.quantity,
-		    updated_at = CURRENT_TIMESTAMP;
 	`
 
 	_, err := s.db.Exec(query, li.CartID, li.OrderID, li.VariantID, li.Quantity)
-	return err
+
+	if err != nil && IsDuplicateError(err) {
+		return ErrAlreadyExists
+	} else if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s Storage) UpdateLineItemsOrderID(cartID, orderID int64) error {
@@ -39,5 +43,16 @@ func (s Storage) UpdateLineItemsOrderID(cartID, orderID int64) error {
 	`
 
 	_, err := s.db.Exec(query, orderID, cartID)
+	return err
+}
+
+func (s Storage) UpdateLineItemQuantity(li int64, quantity int) error {
+	query := `
+		UPDATE line_items
+		SET quantity = ?
+		WHERE id = ?
+	`
+
+	_, err := s.db.Exec(query, quantity, li)
 	return err
 }
