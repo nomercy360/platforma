@@ -57,7 +57,7 @@ func listProductQuery(locale string) string {
 		query = `
 		SELECT p.id, p.handle, pt_ru.name, pt_ru.description, pp.currency, pp.price,
 		       p.cover_image_url, p.image_urls,
-		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'quantity', pv.quantity)) AS variants
+		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
 		FROM products p
 		LEFT JOIN product_translations pt_ru ON p.id = pt_ru.product_id AND pt_ru.language = 'ru'
 		LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.currency = 'BYN'
@@ -67,7 +67,7 @@ func listProductQuery(locale string) string {
 		query = `
 		SELECT p.id, p.handle, p.name, p.description, pp.currency, pp.price,
 		       p.cover_image_url, p.image_urls,
-		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'quantity', pv.quantity)) AS variants
+		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
 		FROM products p
 		LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.currency = 'USD'
 		LEFT JOIN product_variants pv ON p.id = pv.product_id
@@ -89,7 +89,8 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 
 	defer rows.Close()
 
-	var products []Product
+	products := make([]Product, 0)
+
 	for rows.Next() {
 		var id int64
 		var price int
