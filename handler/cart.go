@@ -222,3 +222,27 @@ func (h Handler) UpdateCartItem(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, cart)
 }
+
+func (h Handler) RemoveCartItem(c echo.Context) error {
+	cartID, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	itemID, _ := strconv.ParseInt(c.Param("item_id"), 10, 64)
+
+	if itemID == 0 || cartID == 0 {
+		return terrors.BadRequest(errors.New("invalid cart or item id"), "invalid cart or item id")
+	}
+
+	if err := h.st.RemoveLineItem(itemID); err != nil {
+		return terrors.InternalServerError(err, "failed to remove item")
+	}
+
+	cart, err := h.st.GetCartByID(cartID, langFromContext(c))
+
+	if err != nil && errors.Is(err, db.ErrNotFound) {
+		return terrors.NotFound(err, "cart not found")
+	} else if err != nil {
+		return terrors.InternalServerError(err, "failed to get cart")
+	}
+
+	return c.JSON(http.StatusOK, cart)
+}

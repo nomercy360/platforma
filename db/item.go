@@ -56,3 +56,13 @@ func (s Storage) UpdateLineItemQuantity(li int64, quantity int) error {
 	_, err := s.db.Exec(query, quantity, li)
 	return err
 }
+
+func (s Storage) RemoveLineItem(li int64) error {
+	query := `
+		DELETE FROM line_items
+		WHERE id = ?
+	`
+
+	_, err := s.db.Exec(query, li)
+	return err
+}
