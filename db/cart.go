@@ -86,7 +86,7 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 			COALESCE(SUM(p.price * li.quantity), 0) AS subtotal,
 			COALESCE(SUM(p.price * li.quantity), 0) AS total,
 			COALESCE(SUM(li.quantity), 0) AS count,
-			p.currency,
+			COALESCE(p.currency, ?) AS currency,
 			c.discount_id
 		FROM
 			cart c
@@ -101,7 +101,7 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		GROUP BY
 			c.id, p.currency;`
 
-	row := s.db.QueryRow(q, currencyFromLocale(locale), id)
+	row := s.db.QueryRow(q, currencyFromLocale(locale), currencyFromLocale(locale), id)
 
 	err := row.Scan(
 		&cart.ID,
