@@ -1,25 +1,22 @@
-# syntax=docker/dockerfile:1
+FROM golang:1.22-alpine3.19 AS build
 
-FROM golang:1.22 AS build-stage
+ENV CGO_ENABLED=1
 
-WORKDIR /app
-
-COPY . .
-
-COPY go.mod go.sum ./
-
-RUN go mod download
-
-RUN CGO_ENABLED=1 GOOS=linux go build -o /api main.go
-
-FROM alpine:3.19 AS build-release-stage
-
-RUN apk --no-cache add ca-certificates bash curl
+RUN apk add --no-cache \
+    # Important: required for go-sqlite3
+    gcc \
+    # Required for Alpine
+    musl-dev
 
 WORKDIR /app
 
-COPY --from=build-stage /api /app/api
+COPY . /app/
 
-EXPOSE 8080
+RUN go mod tidy && \
+    go install -ldflags='-s -w -extldflags "-static"' ./main.go
 
-CMD ["/api"]
+FROM scratch
+
+COPY --from=build /go/bin/main /app/main
+
+CMD [ "/app/main" ]

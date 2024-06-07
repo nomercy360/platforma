@@ -20,7 +20,7 @@ spec:
         - image: maksim1111/clan-api:latest
           name: clan-api
           imagePullPolicy: Always
-          command: [ "/app/api" ]
+          command: [ "/app/main" ]
           ports:
             - containerPort: 8080
               name: http
