@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"rednit/db"
@@ -8,12 +9,7 @@ import (
 )
 
 func (h Handler) ListProducts(c echo.Context) error {
-	locale := c.QueryParam("locale")
-	if locale == "" {
-		locale = "en"
-	}
-
-	products, err := h.st.ListProducts(locale)
+	products, err := h.st.ListProducts(langFromContext(c))
 	if err != nil {
 		return terrors.InternalServerError(err, "failed to list products")
 	}
@@ -23,14 +19,11 @@ func (h Handler) ListProducts(c echo.Context) error {
 
 func (h Handler) GetProduct(c echo.Context) error {
 	handle := c.Param("handle")
-	locale := c.QueryParam("locale")
 
-	if locale == "" {
-		locale = "en"
-	}
-
-	product, err := h.st.GetProduct(db.GetProductQuery{Handle: handle, Locale: locale})
-	if err != nil {
+	product, err := h.st.GetProduct(db.GetProductQuery{Handle: handle, Locale: langFromContext(c)})
+	if err != nil && errors.Is(err, db.ErrNotFound) {
+		return terrors.NotFound(err, "product not found")
+	} else if err != nil {
 		return terrors.InternalServerError(err, "failed to get product")
 	}
 

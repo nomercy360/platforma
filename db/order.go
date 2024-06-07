@@ -46,6 +46,9 @@ type Order struct {
 	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
 	DeletedAt      *time.Time `db:"deleted_at" json:"deleted_at"`
+	PaymentID      *string    `db:"payment_id" json:"payment_id"`
+	Customer       *Customer  `json:"customer"`
+	Items          []LineItem `json:"items"`
 }
 
 func (s Storage) GetOrderByID(id int64) (*Order, error) {
@@ -65,8 +68,9 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 			   o.updated_at,
 			   o.deleted_at,
 			   o.currency,
-			   o.metadata
-		FROM orders o
+			   o.metadata,
+			   o.payment_id
+		FROM orders o		
 		WHERE o.id = ?;`
 
 	row := s.db.QueryRow(query, id)
@@ -86,6 +90,7 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 		&order.DeletedAt,
 		&order.Currency,
 		&order.Metadata,
+		&order.PaymentID,
 	)
 
 	if err != nil && IsNoRowsError(err) {
@@ -94,16 +99,28 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 		return nil, err
 	}
 
+	order.Customer, err = s.GetCustomerByID(order.CustomerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	order.Items, err = s.GetLineItems(LineItemQuery{OrderID: id, Currency: order.Currency, Locale: "en"})
+
+	if err != nil {
+		return nil, err
+	}
+
 	return order, nil
 }
 
 func (s Storage) CreateOrder(o Order) (*Order, error) {
 	query := `
-		INSERT INTO orders (customer_id, cart_id, status, payment_status, shipping_status, total, subtotal, discount_id, currency, metadata)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+		INSERT INTO orders (customer_id, cart_id, status, payment_status, shipping_status, total, subtotal, discount_id, currency, metadata, payment_id)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 	`
 
-	res, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.Currency, o.Metadata)
+	res, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.Currency, o.Metadata, o.PaymentID)
 	if err != nil {
 		return nil, err
 	}
@@ -120,11 +137,11 @@ func (s Storage) CreateOrder(o Order) (*Order, error) {
 func (s Storage) UpdateOrder(o *Order) (*Order, error) {
 	query := `
 		UPDATE orders
-		SET customer_id = ?, cart_id = ?, status = ?, payment_status = ?, shipping_status = ?, total = ?, subtotal = ?, discount_id = ?, metadata = ?
+		SET customer_id = ?, cart_id = ?, status = ?, payment_status = ?, shipping_status = ?, total = ?, subtotal = ?, discount_id = ?, metadata = ?, payment_id = ?
 		WHERE id = ?;
 	`
 
-	_, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.Metadata, o.ID)
+	_, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.Metadata, o.PaymentID, o.ID)
 	if err != nil {
 		return nil, err
 	}

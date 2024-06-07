@@ -4,16 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 )
-
-// type ICartItem = {
-//  id: number;
-//  name: string;
-//  price: number;
-//  quantity: number;
-//  size: string;
-//};
 
 type Cart struct {
 	ID         int64           `json:"id" db:"id"`
@@ -34,6 +27,17 @@ type Cart struct {
 type CustomerContext struct {
 	UserAgent string `json:"user_agent" db:"user_agent"`
 	IP        string `json:"ip" db:"ip"`
+}
+
+func currencyFromLocale(locale string) string {
+	switch locale {
+	case "en":
+		return "USD"
+	case "ru", "by":
+		return "BYN"
+	default:
+		return "USD"
+	}
 }
 
 func (cc CustomerContext) Value() (driver.Value, error) {
@@ -69,7 +73,7 @@ func (cc *CustomerContext) Scan(src interface{}) error {
 	return nil
 }
 
-func (s Storage) GetCartByID(id int64) (*Cart, error) {
+func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 	var cart Cart
 	q := `
 		SELECT 
@@ -91,13 +95,13 @@ func (s Storage) GetCartByID(id int64) (*Cart, error) {
 		LEFT JOIN
 			product_variants pv ON li.variant_id = pv.id
 		LEFT JOIN
-			product_prices p ON pv.id = p.product_id
+			product_prices p ON pv.product_id = p.product_id AND p.currency = ?
 		WHERE
 			c.id = ?
 		GROUP BY
 			c.id, p.currency;`
 
-	row := s.db.QueryRow(q, id)
+	row := s.db.QueryRow(q, currencyFromLocale(locale), id)
 
 	err := row.Scan(
 		&cart.ID,
@@ -119,7 +123,7 @@ func (s Storage) GetCartByID(id int64) (*Cart, error) {
 		return nil, err
 	}
 
-	items, err := s.GetLineItemsByCartID(id, "en")
+	items, err := s.GetLineItems(LineItemQuery{Locale: locale, CartID: id})
 
 	if err != nil {
 		return nil, err
@@ -148,8 +152,29 @@ func (s Storage) GetCartByID(id int64) (*Cart, error) {
 	return &cart, nil
 }
 
-func (s Storage) GetLineItemsByCartID(cartID int64, locale string) ([]LineItem, error) {
-	q := `
+func lineItemQuery(locale string) string {
+	switch locale {
+	case "ru", "by":
+		return `
+			SELECT li.id,
+				   li.cart_id,
+				   li.order_id,
+				   li.variant_id,
+				   li.quantity,
+				   li.created_at,
+				   li.updated_at,
+				   li.deleted_at,
+				   pv.name AS variant_name,
+				   pt.name AS product_name,
+				   p.cover_image_url AS image_url,
+				   pp.price
+			FROM line_items li
+			JOIN main.product_variants pv on li.variant_id = pv.id
+			JOIN main.products p on pv.product_id = p.id
+			JOIN product_prices pp on p.id = pp.product_id AND pp.currency = ?
+			JOIN product_translations pt on p.id = pt.product_id AND pt.language = 'ru'`
+	default:
+		return `
 		SELECT li.id,
 			   li.cart_id,
 			   li.order_id,
@@ -163,21 +188,40 @@ func (s Storage) GetLineItemsByCartID(cartID int64, locale string) ([]LineItem, 
 			   p.cover_image_url AS image_url,
 			   pp.price
 		FROM line_items li
-		JOIN main.product_variants pv on li.variant_id = pv.id
-		JOIN main.products p on pv.product_id = p.id
-		JOIN product_prices pp on pv.id = pp.product_id AND pp.currency = ?
-		WHERE li.cart_id = ?
-		  AND li.deleted_at IS NULL;`
+		JOIN product_variants pv on li.variant_id = pv.id
+		JOIN products p on pv.product_id = p.id
+		JOIN product_prices pp on p.id = pp.product_id AND pp.currency = ?`
+	}
+}
+
+type LineItemQuery struct {
+	Locale   string
+	CartID   int64
+	OrderID  int64
+	Currency string
+}
+
+func (s Storage) GetLineItems(query LineItemQuery) ([]LineItem, error) {
+	q := lineItemQuery(query.Locale)
 
 	var currency string
-	switch locale {
-	case "en":
-		currency = "USD"
-	case "ru", "by":
-		currency = "BYN"
+	if query.Currency != "" {
+		currency = query.Currency
+	} else {
+		currency = currencyFromLocale(query.Locale)
 	}
 
-	rows, err := s.db.Query(q, currency, cartID)
+	args := []interface{}{currency}
+
+	if query.CartID > 0 {
+		q = fmt.Sprintf("%s WHERE li.cart_id = %d", q, query.CartID)
+		args = append(args, query.CartID)
+	} else if query.OrderID > 0 {
+		q = fmt.Sprintf("%s WHERE li.order_id = %d", q, query.OrderID)
+		args = append(args, query.OrderID)
+	}
+
+	rows, err := s.db.Query(q, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +254,7 @@ func (s Storage) GetLineItemsByCartID(cartID int64, locale string) ([]LineItem, 
 	return items, nil
 }
 
-func (s Storage) CreateCart(cart Cart) (*Cart, error) {
+func (s Storage) CreateCart(cart Cart, locale string) (*Cart, error) {
 	res, err := s.db.Exec("INSERT INTO cart (customer_id, context) VALUES (?, ?)",
 		cart.CustomerID, cart.Context)
 
@@ -224,16 +268,21 @@ func (s Storage) CreateCart(cart Cart) (*Cart, error) {
 		return nil, err
 	}
 
-	for _, item := range cart.Items {
-		_, err := s.db.Exec("INSERT INTO line_items (cart_id, variant_id, quantity) VALUES (?, ?, ?)",
-			id, item.VariantID, item.Quantity)
+	if len(cart.Items) > 0 {
+		for _, item := range cart.Items {
+			li := LineItem{
+				CartID:    &id,
+				VariantID: item.VariantID,
+				Quantity:  item.Quantity,
+			}
 
-		if err != nil {
-			return nil, err
+			if err := s.SaveLineItem(li); err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	return s.GetCartByID(id)
+	return s.GetCartByID(id, locale)
 }
 
 func (s Storage) DeleteCart(id int64) error {

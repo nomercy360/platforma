@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/labstack/echo/v4"
 	"rednit/config"
 	"time"
 
@@ -20,8 +21,8 @@ func New(st storage, config config.Default) Handler {
 type storage interface {
 	ListProducts(locale string) ([]db.Product, error)
 	GetProduct(query db.GetProductQuery) (*db.Product, error)
-	CreateCart(cart db.Cart) (*db.Cart, error)
-	GetCartByID(cartID int64) (*db.Cart, error)
+	CreateCart(cart db.Cart, locale string) (*db.Cart, error)
+	GetCartByID(cartID int64, locale string) (*db.Cart, error)
 	SaveLineItem(li db.LineItem) error
 	GetCustomerByEmail(email string) (*db.Customer, error)
 	GetCustomerByID(id int64) (*db.Customer, error)
@@ -59,4 +60,8 @@ func generateJWT(secret string, uid, chatID int64) (string, error) {
 	}
 
 	return t, nil
+}
+
+func langFromContext(c echo.Context) string {
+	return c.Get("lang").(string)
 }

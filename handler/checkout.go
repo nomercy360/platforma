@@ -46,6 +46,9 @@ func (h Handler) Checkout(c echo.Context) error {
 		return err
 	}
 
+	// get locale from header
+	locale := langFromContext(c)
+
 	customer, err := h.st.GetCustomerByEmail(req.Email)
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
@@ -66,7 +69,8 @@ func (h Handler) Checkout(c echo.Context) error {
 	} else if err != nil {
 		return terrors.InternalServerError(err, "failed to get customer")
 	}
-	cart, err := h.st.GetCartByID(req.CartID)
+
+	cart, err := h.st.GetCartByID(req.CartID, locale)
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")
@@ -96,44 +100,13 @@ func (h Handler) Checkout(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to update line items order id")
 	}
 
-	//if req.PromoCode != nil {
-	//	disc, err := h.st.GetDiscountByCode(*req.PromoCode)
-	//
-	//	if err != nil && errors.Is(err, db.ErrNotFound) {
-	//		return terrors.NotFound(err, "discount not found")
-	//	} else if err != nil {
-	//		return terrors.InternalServerError(err, "failed to get discount")
-	//	}
-	//
-	//	// calculate total
-	//	if disc.Value > 0 {
-	//		switch disc.Type {
-	//		case "percentage":
-	//			total = total - (total * disc.Value / 100)
-	//		case "fixed":
-	//			total = total - disc.Value
-	//		}
-	//
-	//		// update usage count
-	//		if err := h.st.UpdateDiscountUsageCount(disc.ID); err != nil {
-	//			return terrors.InternalServerError(err, "failed to update discount usage count")
-	//		}
-	//
-	//		// save order discount
-	//		order.DiscountID = &disc.ID
-	//	}
-	//}
-	//
-	//order.Total = total
-	//order.Subtotal = subtotal
-
 	paymentRequest := payment.BepaidTokenRequest{
 		Checkout: payment.BepaidCheckout{
 			Attempts:        1,
 			Test:            true,
 			TransactionType: "payment",
 			Settings: payment.BepaidSettings{
-				NotificationUrl: "https://d421-125-24-110-63.ngrok-free.app/webhook/bepaid",
+				NotificationUrl: fmt.Sprintf("%s/webhook/bepaid", h.config.ExternalURL),
 			},
 			Order: payment.BepaidOrder{
 				Amount:      order.Total * 100,
@@ -153,7 +126,12 @@ func (h Handler) Checkout(c echo.Context) error {
 		},
 	}
 
-	tokenResp, err := payment.CreatePaymentToken(paymentRequest, "https://checkout.bepaid.by/ctp/api/checkouts", "12498", "8d34e129dcba1cb5570e42ec0ebde0131c10169db2bec39b6e085b000e32ed3a")
+	tokenResp, err := payment.CreatePaymentToken(
+		paymentRequest,
+		fmt.Sprintf("%s/ctp/api/checkouts", h.config.Bepaid.ApiURL),
+		h.config.Bepaid.ShopID,
+		h.config.Bepaid.SecretKey,
+	)
 
 	if err != nil {
 		return terrors.InternalServerError(err, "failed to create payment token")

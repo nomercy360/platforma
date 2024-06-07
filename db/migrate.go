@@ -50,7 +50,6 @@ func (s Storage) Migrate() error {
 		    deleted_at TIMESTAMP
 		);
 
-		
 		CREATE TABLE IF NOT EXISTS cart (
 		    id INTEGER PRIMARY KEY,
 		    customer_id INTEGER,
@@ -94,6 +93,7 @@ func (s Storage) Migrate() error {
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    deleted_at TIMESTAMP,
 		    metadata TEXT,
+		    payment_id TEXT,
 		    FOREIGN KEY (customer_id) REFERENCES customers (id),
 		    FOREIGN KEY (cart_id) REFERENCES cart (id),
 		    FOREIGN KEY (discount_id) REFERENCES discounts (id)

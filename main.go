@@ -18,6 +18,7 @@ import (
 	"rednit/db"
 	"rednit/handler"
 	"rednit/terrors"
+	"strings"
 	"time"
 )
 
@@ -42,6 +43,29 @@ func getLoggerMiddleware(logger *slog.Logger) middleware.RequestLoggerConfig {
 			}
 			return nil
 		},
+	}
+}
+
+func localeMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		lang := "en"
+		langHeader := c.Request().Header.Get("Accept-Language")
+		if langHeader != "" {
+			languages := strings.Split(langHeader, ",")
+			if len(languages) > 0 {
+				primaryLang := strings.SplitN(languages[0], ";", 2)[0]
+				if primaryLang != "" {
+					lang = primaryLang
+				}
+			}
+		}
+
+		if len(lang) > 2 && lang[2] == '-' {
+			lang = lang[:2]
+		}
+
+		c.Set("lang", lang)
+		return next(c)
 	}
 }
 
@@ -149,6 +173,8 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
+
+	e.Use(localeMiddleware)
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	e.Use(middleware.RequestLoggerWithConfig(getLoggerMiddleware(logger)))

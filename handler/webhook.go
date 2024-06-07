@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
+	"rednit/notification"
 	"rednit/payment"
 	"rednit/terrors"
 	"strconv"
@@ -52,10 +54,40 @@ func (h Handler) BepaidNotification(c echo.Context) error {
 		return terrors.BadRequest(errors.New(fmt.Sprintf("bepaid: invalid status %s", req.Transaction.Status)), "invalid status")
 	}
 
+	order.PaymentID = &req.Transaction.ID
+
 	_, err = h.st.UpdateOrder(order)
 
 	if err != nil {
 		return err
+	}
+
+	if order.PaymentStatus == "paid" {
+		go func() {
+			msg := fmt.Sprintf(`Order #%d
+Order paid
+%s
+%s
+Shipping address:
+%s
+Payment Amount: %d %s
+Payment Amount With Discount: %d %s
+
+Purchaser information:
+name: %s
+email: %s
+phone: %s
+country: %s
+postcode: %s
+address: %s`,
+				order.ID, "bepaid", "courier", order.Customer.Address, order.Total, order.Currency, order.Total, order.Currency, order.Customer.Name, order.Customer.Email, order.Customer.Phone, order.Customer.Country, order.Customer.ZIP, order.Customer.Address)
+
+			msg = notification.EscapeMarkdown(msg)
+
+			if err := notification.NotifyTelegram(h.config.Notifications.Telegram.BotToken, h.config.Notifications.Telegram.ChatID, msg); err != nil {
+				log.Printf("failed to send notification to telegram: %v", err)
+			}
+		}()
 	}
 
 	return c.NoContent(http.StatusOK)

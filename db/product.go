@@ -40,12 +40,7 @@ type Product struct {
 	Image       string    `json:"image"`
 	Images      []string  `json:"images"`
 	Currency    string    `json:"currency"`
-	Price       int       `json:"amount"`
-}
-
-type Price struct {
-	Currency string `json:"currency"`
-	Amount   int    `json:"amount"`
+	Price       int       `json:"price"`
 }
 
 type Variant struct {
@@ -173,7 +168,9 @@ func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
 		&product.Image,
 		&imageUrls,
 		&variantsJSON,
-	); err != nil {
+	); err != nil && IsNoRowsError(err) {
+		return nil, ErrNotFound
+	} else if err != nil {
 		return nil, err
 	}
 
