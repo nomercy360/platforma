@@ -59,7 +59,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: fm-api.mxksim.dev
+    - host: clan-api.mxksim.dev
       http:
         paths:
           - path: /
