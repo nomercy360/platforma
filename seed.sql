@@ -69,7 +69,7 @@ VALUES (1, 'silk-dress', '/images/products/1/1.png',
         'This elegantly understated robe dress in a soft blush pink offers a serene and graceful look. Its flowing sleeves and relaxed fit provide an aura of tranquility and comfort. Ideal for both a relaxed day at home or a refined casual event, this dress embodies effortless chic with a touch of romantic flair.',
         true);
 
-INSERT INTO product_variants (product_id, id, name, quantity)
+INSERT INTO product_variants (product_id, id, name, available)
 VALUES (1, 1, 'XS', 100),
        (1, 2, 'S', 100),
        (1, 3, 'M', 100),

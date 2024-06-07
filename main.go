@@ -156,7 +156,7 @@ func main() {
 		log.Fatalf("Failed to parse config: %v\n", err)
 	}
 
-	sql, err := db.ConnectDB("./app.db")
+	sql, err := db.ConnectDB(cfg.DBPath)
 
 	if err != nil {
 		e.Logger.Fatalf("failed to connect to db: %v", err)

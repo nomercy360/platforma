@@ -6,6 +6,7 @@ type Default struct {
 	ExternalURL   string `env:"EXTERNAL_URL,required"`
 	Notifications Notifications
 	//JWTSecret string `env:"JWT_SECRET,required"`
+	DBPath string `env:"DB_PATH" envDefault:"./app.db"`
 }
 
 type ServerConfig struct {

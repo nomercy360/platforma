@@ -31,9 +31,20 @@ spec:
               cpu: "50m"
             limits:
               memory: "512Mi"
+          volumeMounts:
+            - mountPath: /app/storage
+              subPath: storage
+              name: clan-api-data
+          env:
+            - name: DB_PATH
+              value: /app/storage/db.sqlite
           envFrom:
             - secretRef:
                 name: clan-api-secrets
+      volumes:
+        - name: clan-api-data
+          persistentVolumeClaim:
+            claimName: clan-api-data
       restartPolicy: Always
 ---
 apiVersion: v1
@@ -69,3 +80,16 @@ spec:
                 name: clan-api
                 port:
                   number: 8080
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: clan-api-data
+spec:
+  storageClassName: "do-block-storage"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
