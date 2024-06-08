@@ -10,7 +10,8 @@ spec:
   selector:
     matchLabels:
       service: clan-api
-  strategy: {}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
