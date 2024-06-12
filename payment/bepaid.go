@@ -43,6 +43,7 @@ type BepaidSettings struct {
 	SaveCardToggle      BepaidSaveCardToggle    `json:"save_card_toggle,omitempty"`
 	AnotherCardToggle   BepaidAnotherCardToggle `json:"another_card_toggle,omitempty"`
 	PaymentMethod       BepaidPaymentMethod     `json:"payment_method,omitempty"`
+	AutoReturn          int                     `json:"auto_return,omitempty"`
 }
 
 type BepaidPaymentMethod struct {
