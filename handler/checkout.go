@@ -109,7 +109,7 @@ func (h Handler) Checkout(c echo.Context) error {
 				NotificationUrl: fmt.Sprintf("%s/webhook/bepaid", h.config.ExternalURL),
 				SuccessUrl:      fmt.Sprintf("%s/en/orders?orderId=%d", h.config.WebURL, order.ID),
 				Language:        locale,
-				AutoReturn:      0,
+				AutoReturn:      "0",
 			},
 			Order: payment.BepaidOrder{
 				Amount:      order.Total * 100,
