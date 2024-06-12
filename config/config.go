@@ -7,6 +7,7 @@ type Default struct {
 	Notifications Notifications
 	//JWTSecret string `env:"JWT_SECRET,required"`
 	DBPath string `env:"DB_PATH" envDefault:"./app.db"`
+	WebURL string `env:"WEB_URL" envDefault:"http://localhost:3000"`
 }
 
 type ServerConfig struct {

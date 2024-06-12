@@ -189,6 +189,7 @@ func main() {
 	g.GET("/products/:handle", h.GetProduct)
 	g.POST("/cart", h.CreateCart)
 	g.GET("/cart/:id", h.GetCart)
+	g.GET("/orders/:id", h.GetOrder)
 	g.POST("/checkout", h.Checkout)
 	g.POST("/cart/:id/discounts", h.ApplyDiscount)
 	g.POST("/cart/:id/items", h.AddItemToCart)

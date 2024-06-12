@@ -107,6 +107,7 @@ func (h Handler) Checkout(c echo.Context) error {
 			TransactionType: "payment",
 			Settings: payment.BepaidSettings{
 				NotificationUrl: fmt.Sprintf("%s/webhook/bepaid", h.config.ExternalURL),
+				SuccessUrl:      fmt.Sprintf("%s/en/orders?orderId=%d", h.config.WebURL, order.ID),
 			},
 			Order: payment.BepaidOrder{
 				Amount:      order.Total * 100,
