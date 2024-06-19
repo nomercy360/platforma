@@ -9,10 +9,11 @@ func (s Storage) Migrate() error {
 		    image_urls TEXT,
 		    name TEXT,
 		    description TEXT,
+		    materials TEXT,
 	        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	        deleted_at TIMESTAMP,
-	        is_published BOOLEAN DEFAULT FALSE
+	        is_published BOOLEAN DEFAULT FALSE 
 		);
 
 		CREATE TABLE IF NOT EXISTS product_variants (
@@ -34,6 +35,7 @@ func (s Storage) Migrate() error {
 		    id INTEGER PRIMARY KEY,
 		    name TEXT,
 		    description TEXT,
+		    materials TEXT,
 		    language TEXT
 		);
 		

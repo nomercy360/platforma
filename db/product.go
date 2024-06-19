@@ -41,6 +41,7 @@ type Product struct {
 	Images      []string  `json:"images"`
 	Currency    string    `json:"currency"`
 	Price       int       `json:"price"`
+	Materials   string    `json:"materials"`
 }
 
 type Variant struct {
@@ -55,7 +56,7 @@ func listProductQuery(locale string) string {
 	switch locale {
 	case "ru", "by":
 		query = `
-		SELECT p.id, p.handle, pt_ru.name, pt_ru.description, pp.currency, pp.price,
+		SELECT p.id, p.handle, pt_ru.name, pt_ru.description, pt_ru.materials, pp.currency, pp.price,
 		       p.cover_image_url, p.image_urls,
 		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
 		FROM products p
@@ -65,7 +66,7 @@ func listProductQuery(locale string) string {
 	`
 	default:
 		query = `
-		SELECT p.id, p.handle, p.name, p.description, pp.currency, pp.price,
+		SELECT p.id, p.handle, p.name, p.description, p.materials, pp.currency, pp.price,
 		       p.cover_image_url, p.image_urls,
 		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
 		FROM products p
@@ -94,7 +95,7 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 	for rows.Next() {
 		var id int64
 		var price int
-		var handle, name, description, imageUrl, currency, variantsJSON string
+		var handle, name, description, materials, imageUrl, currency, variantsJSON string
 		var imageUrls ArrayString
 
 		if err := rows.Scan(
@@ -102,6 +103,7 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 			&handle,
 			&name,
 			&description,
+			&materials,
 			&currency,
 			&price,
 			&imageUrl,
@@ -123,6 +125,7 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 			Currency:    currency,
 			Price:       price,
 			Description: description,
+			Materials:   materials,
 			Image:       imageUrl,
 			Variants:    variants,
 			Images:      imageUrls,
@@ -164,6 +167,7 @@ func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
 		&product.Handle,
 		&product.Name,
 		&product.Description,
+		&product.Materials,
 		&product.Currency,
 		&product.Price,
 		&product.Image,
