@@ -19,6 +19,7 @@ type Bepaid struct {
 	ShopID    string `env:"BEPAID_SHOP_ID,required"`
 	SecretKey string `env:"BEPAID_SECRET_KEY,required"`
 	ApiURL    string `env:"BEPAID_API_URL" envDefault:"https://checkout.bepaid.by"`
+	TestMode  bool   `env:"BEPAID_TEST_MODE" envDefault:"true"`
 }
 
 type Notifications struct {

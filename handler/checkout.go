@@ -128,7 +128,7 @@ func (h Handler) Checkout(c echo.Context) error {
 	paymentRequest := payment.BepaidTokenRequest{
 		Checkout: payment.BepaidCheckout{
 			Attempts:        1,
-			Test:            true,
+			Test:            h.config.Bepaid.TestMode,
 			TransactionType: "payment",
 			Settings: payment.BepaidSettings{
 				NotificationUrl: fmt.Sprintf("%s/webhook/bepaid", h.config.ExternalURL),

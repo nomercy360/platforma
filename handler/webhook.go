@@ -24,7 +24,7 @@ func (h Handler) BepaidNotification(c echo.Context) error {
 		return terrors.Unauthorized(errors.New("bepaid: missing credentials"), "missing credentials")
 	}
 
-	if username != "12498" || password != "8d34e129dcba1cb5570e42ec0ebde0131c10169db2bec39b6e085b000e32ed3a" {
+	if username != h.config.Bepaid.ShopID || password != h.config.Bepaid.SecretKey {
 		return terrors.Unauthorized(errors.New("bepaid: invalid credentials"), "invalid credentials")
 	}
 
@@ -62,25 +62,30 @@ func (h Handler) BepaidNotification(c echo.Context) error {
 		return err
 	}
 
+	var delivery string
+	if order.CurrencyCode == "BYN" {
+		delivery = "Сдэком по СНГ"
+	} else {
+		delivery = "Международная Экспресс доставка"
+	}
+
 	if order.PaymentStatus == "paid" {
 		go func() {
-			msg := fmt.Sprintf(`Order #%d
-Order paid
-%s
-%s
-Shipping address:
-%s
-Payment Amount: %d %s
-Payment Amount With Discount: %d %s
+			msg := fmt.Sprintf(`Заказ #%d
+Заказ оплачен через %s
+Тип доставки: %s
+Адрес доставки: %s
+Сумма заказа: %d %s
+Итого (включая доставку и дискаунт): %d %s
 
-Purchaser information:
-name: %s
-email: %s
-phone: %s
-country: %s
-postcode: %s
-address: %s`,
-				order.ID, "bepaid", "courier", order.Customer.Address, order.Total, order.CurrencyCode, order.Total, order.CurrencyCode, order.Customer.Name, order.Customer.Email, order.Customer.Phone, order.Customer.Country, order.Customer.ZIP, order.Customer.Address)
+Покупатель:
+Имя: %s
+Email: %s
+Телефон: %s
+Страна: %s
+Индекс: %s
+Адрес: %s`,
+				order.ID, "bepaid", delivery, order.Customer.Address, order.Subtotal, order.CurrencyCode, order.Total, order.CurrencyCode, order.Customer.Name, order.Customer.Email, order.Customer.Phone, order.Customer.Country, order.Customer.ZIP, order.Customer.Address)
 
 			msg = notification.EscapeMarkdown(msg)
 
