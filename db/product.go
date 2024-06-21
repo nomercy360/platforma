@@ -32,19 +32,20 @@ func (as ArrayString) Value() (driver.Value, error) {
 }
 
 type Product struct {
-	ID          int64     `json:"id"`
-	Handle      string    `json:"handle"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Variants    []Variant `json:"variants"`
-	Image       string    `json:"image"`
-	Images      []string  `json:"images"`
-	Currency    string    `json:"currency"`
-	Price       int       `json:"price"`
-	Materials   string    `json:"materials"`
+	ID             int64            `json:"id"`
+	Handle         string           `json:"handle"`
+	Name           string           `json:"name"`
+	Description    string           `json:"description"`
+	Variants       []ProductVariant `json:"variants"`
+	Image          string           `json:"image"`
+	Images         []string         `json:"images"`
+	CurrencyCode   string           `json:"currency_code"`
+	CurrencySymbol string           `json:"currency_symbol"`
+	Price          int              `json:"price"`
+	Materials      string           `json:"materials"`
 }
 
-type Variant struct {
+type ProductVariant struct {
 	ID        int64  `json:"id"`
 	Name      string `json:"name"`
 	Available int    `json:"available"`
@@ -56,22 +57,24 @@ func listProductQuery(locale string) string {
 	switch locale {
 	case "ru", "by":
 		query = `
-		SELECT p.id, p.handle, pt_ru.name, pt_ru.description, pt_ru.materials, pp.currency, pp.price,
+		SELECT p.id, p.handle, pt_ru.name, pt_ru.description, pt_ru.materials, pp.currency_code, c.symbol, pp.price,
 		       p.cover_image_url, p.image_urls,
 		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
 		FROM products p
 		LEFT JOIN product_translations pt_ru ON p.id = pt_ru.product_id AND pt_ru.language = 'ru'
-		LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.currency = 'BYN'
+		LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.currency_code = 'BYN'
 		LEFT JOIN product_variants pv ON p.id = pv.product_id
+		LEFT JOIN currencies c ON pp.currency_code = c.code
 	`
 	default:
 		query = `
-		SELECT p.id, p.handle, p.name, p.description, p.materials, pp.currency, pp.price,
+		SELECT p.id, p.handle, p.name, p.description, p.materials, pp.currency_code, c.symbol, pp.price,
 		       p.cover_image_url, p.image_urls,
 		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
 		FROM products p
-		LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.currency = 'USD'
+		LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.currency_code = 'USD'
 		LEFT JOIN product_variants pv ON p.id = pv.product_id
+		LEFT JOIN currencies c ON pp.currency_code = c.code
 	`
 	}
 
@@ -95,7 +98,7 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 	for rows.Next() {
 		var id int64
 		var price int
-		var handle, name, description, materials, imageUrl, currency, variantsJSON string
+		var handle, name, description, materials, imageUrl, currency, currencySymbol, variantsJSON string
 		var imageUrls ArrayString
 
 		if err := rows.Scan(
@@ -105,6 +108,7 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 			&description,
 			&materials,
 			&currency,
+			&currencySymbol,
 			&price,
 			&imageUrl,
 			&imageUrls,
@@ -113,22 +117,23 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 			return nil, err
 		}
 
-		var variants []Variant
+		var variants []ProductVariant
 		if err := json.Unmarshal([]byte(variantsJSON), &variants); err != nil {
 			return nil, err
 		}
 
 		product := Product{
-			ID:          id,
-			Handle:      handle,
-			Name:        name,
-			Currency:    currency,
-			Price:       price,
-			Description: description,
-			Materials:   materials,
-			Image:       imageUrl,
-			Variants:    variants,
-			Images:      imageUrls,
+			ID:             id,
+			Handle:         handle,
+			Name:           name,
+			CurrencyCode:   currency,
+			CurrencySymbol: currencySymbol,
+			Price:          price,
+			Description:    description,
+			Materials:      materials,
+			Image:          imageUrl,
+			Variants:       variants,
+			Images:         imageUrls,
 		}
 
 		products = append(products, product)
@@ -168,7 +173,8 @@ func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
 		&product.Name,
 		&product.Description,
 		&product.Materials,
-		&product.Currency,
+		&product.CurrencyCode,
+		&product.CurrencySymbol,
 		&product.Price,
 		&product.Image,
 		&imageUrls,
@@ -179,7 +185,7 @@ func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
 		return nil, err
 	}
 
-	var variants []Variant
+	var variants []ProductVariant
 	if err := json.Unmarshal([]byte(variantsJSON), &variants); err != nil {
 		return nil, err
 	}

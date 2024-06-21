@@ -104,7 +104,7 @@ func (h Handler) Checkout(c echo.Context) error {
 		CartID:         cart.ID,
 		Total:          cart.Total,
 		Subtotal:       cart.Subtotal,
-		Currency:       cart.Currency,
+		CurrencyCode:   cart.CurrencyCode,
 	}
 
 	order, err := h.st.CreateOrder(newOrder)
@@ -115,6 +115,14 @@ func (h Handler) Checkout(c echo.Context) error {
 
 	if err := h.st.UpdateLineItemsOrderID(cart.ID, order.ID); err != nil {
 		return terrors.InternalServerError(err, "failed to update line items order id")
+	}
+
+	var itemsString string
+	for _, item := range cart.Items {
+		itemsString += fmt.Sprintf("%s(%s) x %d", item.ProductName, item.VariantName, item.Quantity)
+		if item != cart.Items[len(cart.Items)-1] {
+			itemsString += ", "
+		}
 	}
 
 	paymentRequest := payment.BepaidTokenRequest{
@@ -130,8 +138,8 @@ func (h Handler) Checkout(c echo.Context) error {
 			},
 			Order: payment.BepaidOrder{
 				Amount:      order.Total * 100,
-				Currency:    order.Currency,
-				Description: fmt.Sprintf("Order #%d", order.ID),
+				Currency:    order.CurrencyCode,
+				Description: fmt.Sprintf("#%d: %s", order.ID, itemsString),
 				TrackingID:  strconv.FormatInt(order.ID, 10),
 			},
 			Customer: payment.BepaidCustomer{

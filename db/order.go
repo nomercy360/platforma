@@ -41,7 +41,7 @@ type Order struct {
 	Total          int        `db:"total" json:"total"`
 	Subtotal       int        `db:"subtotal" json:"subtotal"`
 	DiscountID     *int64     `db:"discount_id" json:"discount_id"`
-	Currency       string     `db:"currency" json:"currency"`
+	CurrencyCode   string     `db:"currency_code" json:"currency_code"`
 	Metadata       Object     `db:"metadata" json:"metadata"`
 	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
@@ -67,7 +67,7 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 			   o.created_at,
 			   o.updated_at,
 			   o.deleted_at,
-			   o.currency,
+			   o.currency_code,
 			   o.metadata,
 			   o.payment_id
 		FROM orders o		
@@ -88,7 +88,7 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 		&order.CreatedAt,
 		&order.UpdatedAt,
 		&order.DeletedAt,
-		&order.Currency,
+		&order.CurrencyCode,
 		&order.Metadata,
 		&order.PaymentID,
 	)
@@ -105,7 +105,7 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 		return nil, err
 	}
 
-	order.Items, err = s.GetLineItems(LineItemQuery{OrderID: id, Currency: order.Currency, Locale: "en"})
+	order.Items, err = s.GetLineItems(LineItemQuery{OrderID: id, Currency: order.CurrencyCode, Locale: "en"})
 
 	if err != nil {
 		return nil, err
@@ -116,11 +116,11 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 
 func (s Storage) CreateOrder(o Order) (*Order, error) {
 	query := `
-		INSERT INTO orders (customer_id, cart_id, status, payment_status, shipping_status, total, subtotal, discount_id, currency, metadata, payment_id)
+		INSERT INTO orders (customer_id, cart_id, status, payment_status, shipping_status, total, subtotal, discount_id, currency_code, metadata, payment_id)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 	`
 
-	res, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.Currency, o.Metadata, o.PaymentID)
+	res, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.CurrencyCode, o.Metadata, o.PaymentID)
 	if err != nil {
 		return nil, err
 	}

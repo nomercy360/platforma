@@ -9,19 +9,19 @@ import (
 )
 
 type Cart struct {
-	ID         int64           `json:"id" db:"id"`
-	Items      []LineItem      `json:"items" db:"items"`
-	CustomerID *int            `json:"customer_id" db:"customer_id"`
-	Currency   string          `json:"currency" db:"currency"`
-	Total      int             `json:"total" db:"total"`
-	Count      int             `json:"count" db:"count"`
-	Subtotal   int             `json:"subtotal" db:"subtotal"`
-	Discount   *Discount       `json:"discount" db:"discount"`
-	DiscountID *int64          `json:"discount_id" db:"discount_id"`
-	CreatedAt  time.Time       `json:"created_at" db:"created_at"`
-	UpdatedAt  time.Time       `json:"updated_at" db:"updated_at"`
-	DeletedAt  *time.Time      `json:"deleted_at" db:"deleted_at"`
-	Context    CustomerContext `json:"context" db:"context"`
+	ID           int64           `json:"id" db:"id"`
+	Items        []LineItem      `json:"items" db:"items"`
+	CustomerID   *int            `json:"customer_id" db:"customer_id"`
+	CurrencyCode string          `json:"currency_code" db:"currency_code"`
+	Total        int             `json:"total" db:"total"`
+	Count        int             `json:"count" db:"count"`
+	Subtotal     int             `json:"subtotal" db:"subtotal"`
+	Discount     *Discount       `json:"discount" db:"discount"`
+	DiscountID   *int64          `json:"discount_id" db:"discount_id"`
+	CreatedAt    time.Time       `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time       `json:"updated_at" db:"updated_at"`
+	DeletedAt    *time.Time      `json:"deleted_at" db:"deleted_at"`
+	Context      CustomerContext `json:"context" db:"context"`
 }
 
 type CustomerContext struct {
@@ -86,7 +86,7 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 			COALESCE(SUM(p.price * li.quantity), 0) AS subtotal,
 			COALESCE(SUM(p.price * li.quantity), 0) AS total,
 			COALESCE(SUM(li.quantity), 0) AS count,
-			COALESCE(p.currency, ?) AS currency,
+			COALESCE(p.currency_code, ?) AS currency,
 			c.discount_id
 		FROM
 			cart c
@@ -95,11 +95,11 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		LEFT JOIN
 			product_variants pv ON li.variant_id = pv.id
 		LEFT JOIN
-			product_prices p ON pv.product_id = p.product_id AND p.currency = ?
+			product_prices p ON pv.product_id = p.product_id AND p.currency_code = ?
 		WHERE
 			c.id = ?
 		GROUP BY
-			c.id, p.currency;`
+			c.id, p.currency_code;`
 
 	row := s.db.QueryRow(q, currencyFromLocale(locale), currencyFromLocale(locale), id)
 
@@ -113,7 +113,7 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		&cart.Subtotal,
 		&cart.Total,
 		&cart.Count,
-		&cart.Currency,
+		&cart.CurrencyCode,
 		&cart.DiscountID,
 	)
 
@@ -149,6 +149,12 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		}
 	}
 
+	if cart.CurrencyCode == "USD" {
+		cart.Total += 10
+	} else {
+		cart.Total += 25
+	}
+
 	return &cart, nil
 }
 
@@ -171,7 +177,7 @@ func lineItemQuery(locale string) string {
 			FROM line_items li
 			JOIN main.product_variants pv on li.variant_id = pv.id
 			JOIN main.products p on pv.product_id = p.id
-			JOIN product_prices pp on p.id = pp.product_id AND pp.currency = ?
+			JOIN product_prices pp on p.id = pp.product_id AND pp.currency_code = ?
 			JOIN product_translations pt on p.id = pt.product_id AND pt.language = 'ru'`
 	default:
 		return `
@@ -190,7 +196,7 @@ func lineItemQuery(locale string) string {
 		FROM line_items li
 		JOIN product_variants pv on li.variant_id = pv.id
 		JOIN products p on pv.product_id = p.id
-		JOIN product_prices pp on p.id = pp.product_id AND pp.currency = ?`
+		JOIN product_prices pp on p.id = pp.product_id AND pp.currency_code = ?`
 	}
 }
 

@@ -2,6 +2,16 @@ package db
 
 func (s Storage) Migrate() error {
 	createTableQuery := `
+		CREATE TABLE IF NOT EXISTS currencies (
+		    code TEXT PRIMARY KEY,
+		    name TEXT,
+		    symbol TEXT,
+		    UNIQUE(code)
+		);
+
+		INSERT INTO currencies (code, name, symbol) VALUES ('USD', 'US Dollar', '$') ON CONFLICT DO NOTHING;
+		INSERT INTO currencies (code, name, symbol) VALUES ('BYN', 'Belarusian Ruble', 'byn') ON CONFLICT DO NOTHING;
+		
 		CREATE TABLE IF NOT EXISTS products (
 		    id INTEGER PRIMARY KEY,
 		    handle TEXT,
@@ -27,7 +37,8 @@ func (s Storage) Migrate() error {
 		    product_id INTEGER,
 		    id INTEGER PRIMARY KEY,
 		    price INTEGER,
-		    currency TEXT
+		    currency_code TEXT,
+		    FOREIGN KEY (currency_code) REFERENCES currencies (code)
 		);
 		
 		CREATE TABLE IF NOT EXISTS product_translations (
@@ -87,7 +98,7 @@ func (s Storage) Migrate() error {
 		    discount_id INTEGER,
 		    status TEXT,
 		    payment_status TEXT,
-		    currency TEXT,
+		    currency_code TEXT,
 		    shipping_status TEXT,
 		    total INTEGER,
 		    subtotal INTEGER,
@@ -98,7 +109,8 @@ func (s Storage) Migrate() error {
 		    payment_id TEXT,
 		    FOREIGN KEY (customer_id) REFERENCES customers (id),
 		    FOREIGN KEY (cart_id) REFERENCES cart (id),
-		    FOREIGN KEY (discount_id) REFERENCES discounts (id)
+		    FOREIGN KEY (discount_id) REFERENCES discounts (id),
+		    FOREIGN KEY (currency_code) REFERENCES currencies (code)
 		);
 
 		CREATE TABLE IF NOT EXISTS discounts (

@@ -80,7 +80,7 @@ phone: %s
 country: %s
 postcode: %s
 address: %s`,
-				order.ID, "bepaid", "courier", order.Customer.Address, order.Total, order.Currency, order.Total, order.Currency, order.Customer.Name, order.Customer.Email, order.Customer.Phone, order.Customer.Country, order.Customer.ZIP, order.Customer.Address)
+				order.ID, "bepaid", "courier", order.Customer.Address, order.Total, order.CurrencyCode, order.Total, order.CurrencyCode, order.Customer.Name, order.Customer.Email, order.Customer.Phone, order.Customer.Country, order.Customer.ZIP, order.Customer.Address)
 
 			msg = notification.EscapeMarkdown(msg)
 
