@@ -91,3 +91,19 @@ func (s Storage) SaveCustomer(c Customer) (*Customer, error) {
 
 	return s.GetCustomerByID(id)
 }
+
+func (s Storage) UpdateCustomer(c *Customer) (*Customer, error) {
+	query := `
+		UPDATE customers
+		SET name = ?, phone = ?, country = ?, address = ?, zip = ?
+		WHERE id = ?;
+	`
+
+	_, err := s.db.Exec(query, c.Name, c.Phone, c.Country, c.Address, c.ZIP, c.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s.GetCustomerByID(c.ID)
+}

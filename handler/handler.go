@@ -37,6 +37,7 @@ type storage interface {
 	DropCartDiscount(cartID int64) error
 	UpdateLineItemQuantity(li int64, quantity int) error
 	RemoveLineItem(li int64) error
+	UpdateCustomer(c *db.Customer) (*db.Customer, error)
 }
 
 type JWTClaims struct {

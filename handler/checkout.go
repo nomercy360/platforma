@@ -66,8 +66,25 @@ func (h Handler) Checkout(c echo.Context) error {
 		if err != nil {
 			return terrors.InternalServerError(err, "failed to save customer")
 		}
+
+		log.Infof("Customer created: %v", customer)
 	} else if err != nil {
 		return terrors.InternalServerError(err, "failed to get customer")
+	} else {
+		// update customer info
+		customer.Name = req.Name
+		customer.Phone = req.Phone
+		customer.Country = req.Country
+		customer.Address = req.Address
+		customer.ZIP = req.ZIP
+
+		customer, err = h.st.UpdateCustomer(customer)
+
+		if err != nil {
+			return terrors.InternalServerError(err, "failed to update customer")
+		}
+
+		log.Infof("Customer updated: %v", customer)
 	}
 
 	cart, err := h.st.GetCartByID(req.CartID, locale)
