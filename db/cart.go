@@ -9,19 +9,20 @@ import (
 )
 
 type Cart struct {
-	ID           int64           `json:"id" db:"id"`
-	Items        []LineItem      `json:"items" db:"items"`
-	CustomerID   *int            `json:"customer_id" db:"customer_id"`
-	CurrencyCode string          `json:"currency_code" db:"currency_code"`
-	Total        int             `json:"total" db:"total"`
-	Count        int             `json:"count" db:"count"`
-	Subtotal     int             `json:"subtotal" db:"subtotal"`
-	Discount     *Discount       `json:"discount" db:"discount"`
-	DiscountID   *int64          `json:"discount_id" db:"discount_id"`
-	CreatedAt    time.Time       `json:"created_at" db:"created_at"`
-	UpdatedAt    time.Time       `json:"updated_at" db:"updated_at"`
-	DeletedAt    *time.Time      `json:"deleted_at" db:"deleted_at"`
-	Context      CustomerContext `json:"context" db:"context"`
+	ID             int64           `json:"id" db:"id"`
+	Items          []LineItem      `json:"items" db:"items"`
+	CustomerID     *int            `json:"customer_id" db:"customer_id"`
+	CurrencyCode   string          `json:"currency_code" db:"currency_code"`
+	Total          int             `json:"total" db:"total"`
+	Count          int             `json:"count" db:"count"`
+	Subtotal       int             `json:"subtotal" db:"subtotal"`
+	Discount       *Discount       `json:"discount" db:"discount"`
+	DiscountID     *int64          `json:"discount_id" db:"discount_id"`
+	CreatedAt      time.Time       `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time       `json:"updated_at" db:"updated_at"`
+	DeletedAt      *time.Time      `json:"deleted_at" db:"deleted_at"`
+	Context        CustomerContext `json:"context" db:"context"`
+	DiscountAmount int             `json:"discount_amount" db:"-"`
 }
 
 type CustomerContext struct {
@@ -143,8 +144,10 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 			switch discount.Type {
 			case "percentage":
 				cart.Total = cart.Total - (cart.Total * discount.Value / 100)
+				cart.DiscountAmount = cart.Subtotal - cart.Total
 			case "fixed":
 				cart.Total = cart.Total - discount.Value
+				cart.DiscountAmount = discount.Value
 			}
 		}
 	}

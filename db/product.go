@@ -84,7 +84,7 @@ func listProductQuery(locale string) string {
 func (s Storage) ListProducts(locale string) ([]Product, error) {
 	query := listProductQuery(locale)
 
-	query += fmt.Sprintf(" WHERE p.is_published = TRUE GROUP BY p.id")
+	query += fmt.Sprintf(" WHERE p.is_published = TRUE AND pp.price > 1 GROUP BY p.id")
 
 	rows, err := s.db.Query(query)
 	if err != nil {

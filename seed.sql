@@ -189,3 +189,6 @@ VALUES (1, 2, 'Черное платье с накидкой',
        (15, 30, 'Тестовый продукт',
         'Описание тестового продукта',
         'Материалы тестового продукта', 'ru');
+
+INSERT INTO discounts (id, value, code, type, is_active)
+VALUES (1, 10, 'PLUMFIRST', 'percentage', true);
