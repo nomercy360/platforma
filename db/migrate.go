@@ -10,7 +10,7 @@ func (s Storage) Migrate() error {
 		);
 
 		INSERT INTO currencies (code, name, symbol) VALUES ('USD', 'US Dollar', '$') ON CONFLICT DO NOTHING;
-		INSERT INTO currencies (code, name, symbol) VALUES ('BYN', 'Belarusian Ruble', 'byn') ON CONFLICT DO NOTHING;
+		INSERT INTO currencies (code, name, symbol) VALUES ('BYN', 'Belarusian Ruble', 'BYN') ON CONFLICT DO NOTHING;
 		
 		CREATE TABLE IF NOT EXISTS products (
 		    id INTEGER PRIMARY KEY,

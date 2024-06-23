@@ -13,6 +13,7 @@ type Cart struct {
 	Items          []LineItem      `json:"items" db:"items"`
 	CustomerID     *int            `json:"customer_id" db:"customer_id"`
 	CurrencyCode   string          `json:"currency_code" db:"currency_code"`
+	CurrencySymbol string          `json:"currency_symbol" db:"currency_symbol"`
 	Total          int             `json:"total" db:"total"`
 	Count          int             `json:"count" db:"count"`
 	Subtotal       int             `json:"subtotal" db:"subtotal"`
@@ -88,6 +89,7 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 			COALESCE(SUM(p.price * li.quantity), 0) AS total,
 			COALESCE(SUM(li.quantity), 0) AS count,
 			COALESCE(p.currency_code, ?) AS currency,
+			COALESCE(cr.symbol, '$') AS currency_symbol,
 			c.discount_id
 		FROM
 			cart c
@@ -97,6 +99,8 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 			product_variants pv ON li.variant_id = pv.id
 		LEFT JOIN
 			product_prices p ON pv.product_id = p.product_id AND p.currency_code = ?
+		LEFT JOIN
+			currencies cr ON p.currency_code = cr.code
 		WHERE
 			c.id = ?
 		GROUP BY
@@ -115,6 +119,7 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		&cart.Total,
 		&cart.Count,
 		&cart.CurrencyCode,
+		&cart.CurrencySymbol,
 		&cart.DiscountID,
 	)
 
