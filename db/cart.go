@@ -157,11 +157,12 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		}
 	}
 
-	//
+	// only for testing purposes
 	if len(cart.Items) == 1 && cart.Items[0].Price == 1 {
 		cart.Total = 1
 		cart.Subtotal = 1
 	} else {
+		// delivery
 		if cart.CurrencyCode == "USD" {
 			cart.Total += 10
 		} else {

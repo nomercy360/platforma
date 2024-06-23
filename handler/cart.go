@@ -33,7 +33,11 @@ func (h Handler) CreateCart(c echo.Context) error {
 		},
 	}
 
-	ip := c.RealIP()
+	ip := c.Request().Header.Get("CF-Connecting-IP")
+	if ip == "" {
+		ip = c.RealIP()
+	}
+
 	ua := c.Request().UserAgent()
 
 	cart.Context = db.CustomerContext{
