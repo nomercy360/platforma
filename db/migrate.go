@@ -127,6 +127,16 @@ func (s Storage) Migrate() error {
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    deleted_at TIMESTAMP
 		);
+
+		CREATE TABLE IF NOT EXISTS users (
+		    id INTEGER PRIMARY KEY,
+		    email TEXT,
+		    password TEXT,
+		    avatar_url TEXT,
+		    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		    deleted_at TIMESTAMP
+		);
  	`
 
 	if _, err := s.db.Exec(createTableQuery); err != nil {

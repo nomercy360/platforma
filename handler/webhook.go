@@ -6,13 +6,14 @@ import (
 	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
+	"rednit/handler/store"
 	"rednit/notification"
 	"rednit/payment"
 	"rednit/terrors"
 	"strconv"
 )
 
-func (h Handler) BepaidNotification(c echo.Context) error {
+func (h store.Handler) BepaidNotification(c echo.Context) error {
 	req := new(payment.BepaidNotification)
 
 	if err := c.Bind(req); err != nil {

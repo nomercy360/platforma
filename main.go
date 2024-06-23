@@ -16,7 +16,7 @@ import (
 	"os/signal"
 	"rednit/config"
 	"rednit/db"
-	"rednit/handler"
+	"rednit/handler/store"
 	"rednit/terrors"
 	"strings"
 	"time"
@@ -121,7 +121,7 @@ func (cv *customValidator) Validate(i interface{}) error {
 func getAuthConfig(secret string) echojwt.Config {
 	return echojwt.Config{
 		NewClaimsFunc: func(_ echo.Context) jwt.Claims {
-			return new(handler.JWTClaims)
+			return new(store.JWTClaims)
 		},
 		SigningKey:             []byte(secret),
 		ContinueOnIgnoredError: true,
@@ -131,7 +131,7 @@ func getAuthConfig(secret string) echojwt.Config {
 				return echo.NewHTTPError(http.StatusUnauthorized, "auth is invalid")
 			}
 
-			claims := &handler.JWTClaims{
+			claims := &store.JWTClaims{
 				RegisteredClaims: jwt.RegisteredClaims{
 					ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour * 30)),
 				},
@@ -166,7 +166,7 @@ func main() {
 		e.Logger.Fatalf("failed to migrate db: %v", err)
 	}
 
-	h := handler.New(sql, cfg)
+	h := store.New(sql, cfg)
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
