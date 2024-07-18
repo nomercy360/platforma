@@ -68,12 +68,7 @@ VALUES (1, 'black-dress-with-cape', '/images/products/1/1.png',
         '/images/products/14/1.png;/images/products/14/2.png;/images/products/14/3.png;/images/products/14/4.png',
         'Chocolate basic dress',
         'This season''s favorite shade is chocolate. The dress features a relaxed silhouette with wide pleats at the waist, creating a subtle fitted effect. Diamond-shaped sleeves and a barely-there pleat on the bodice complete the look.',
-        '100% cotton', true),
-       (15, 'test-product', '/images/products/15/1.png',
-        '/images/products/15/1.png',
-        'Test product',
-        'Test product description',
-        'Test product materials', true);
+        '100% cotton', true);
 
 INSERT INTO product_variants (product_id, id, name, available)
 VALUES (1, 1, 'XS', 10),
@@ -105,9 +100,7 @@ VALUES (1, 1, 'XS', 10),
        (13, 27, 'XS-S', 20),
        (13, 28, 'M-L', 20),
        (14, 29, 'XS-S', 20),
-       (14, 30, 'M-L', 20),
-       (15, 31, 'XS-S', 10),
-       (15, 32, 'M-L', 10);
+       (14, 30, 'M-L', 20);
 
 
 INSERT INTO product_prices (product_id, id, price, currency_code)
@@ -138,9 +131,7 @@ VALUES (1, 1, 320, 'USD'),
        (13, 25, 220, 'USD'),
        (13, 26, 730, 'BYN'),
        (14, 27, 220, 'USD'),
-       (14, 28, 730, 'BYN'),
-       (15, 29, 1, 'USD'),
-       (15, 30, 1, 'BYN');
+       (14, 28, 730, 'BYN');
 
 
 INSERT INTO product_translations (product_id, id, name, description, materials, language)
@@ -185,10 +176,7 @@ VALUES (1, 2, 'Черное платье с накидкой',
         '100% хлопок', 'ru'),
        (14, 28, 'Шоколадное базовое платье',
         'Любимым оттенком сезона стал шоколадный цвет. Платье свободного силуэта с широкими складками на талии, создающими эффект небольшого прилегания. Ромбовидный рукав и едва заметная складка на лифе.',
-        '100% хлопок', 'ru'),
-       (15, 30, 'Тестовый продукт',
-        'Описание тестового продукта',
-        'Материалы тестового продукта', 'ru');
+        '100% хлопок', 'ru');
 
 INSERT INTO discounts (id, value, code, type, is_active)
 VALUES (1, 10, 'PLUMFIRST', 'percentage', true);

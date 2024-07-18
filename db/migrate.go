@@ -23,14 +23,16 @@ func (s Storage) Migrate() error {
 	        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	        deleted_at TIMESTAMP,
-	        is_published BOOLEAN DEFAULT FALSE 
+	        is_published BOOLEAN DEFAULT FALSE,
+	        UNIQUE(handle)
 		);
 
 		CREATE TABLE IF NOT EXISTS product_variants (
 		    product_id INTEGER,
 		    id INTEGER PRIMARY KEY,
 		    name TEXT,
-		    available INTEGER DEFAULT 0
+		    available INTEGER DEFAULT 0,
+		    FOREIGN KEY (product_id) REFERENCES products (id)
 		);
 
 		CREATE TABLE IF NOT EXISTS product_prices (
@@ -38,7 +40,8 @@ func (s Storage) Migrate() error {
 		    id INTEGER PRIMARY KEY,
 		    price INTEGER,
 		    currency_code TEXT,
-		    FOREIGN KEY (currency_code) REFERENCES currencies (code)
+		    FOREIGN KEY (currency_code) REFERENCES currencies (code),
+		    UNIQUE(product_id, currency_code)
 		);
 		
 		CREATE TABLE IF NOT EXISTS product_translations (
@@ -60,7 +63,8 @@ func (s Storage) Migrate() error {
 		    zip TEXT,
 		    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		    deleted_at TIMESTAMP
+		    deleted_at TIMESTAMP,
+		    UNIQUE(email)
 		);
 
 		CREATE TABLE IF NOT EXISTS cart (
@@ -125,7 +129,8 @@ func (s Storage) Migrate() error {
 		    usage_count INTEGER DEFAULT 0,
 		    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		    deleted_at TIMESTAMP
+		    deleted_at TIMESTAMP,
+		    UNIQUE(code)
 		);
  	`
 
