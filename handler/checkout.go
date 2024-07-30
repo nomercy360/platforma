@@ -47,7 +47,9 @@ func (h Handler) Checkout(c echo.Context) error {
 	}
 
 	// get locale from header
-	locale := langFromContext(c)
+	// locale := langFromContext(c)
+
+	locale := "ru"
 
 	customer, err := h.st.GetCustomerByEmail(req.Email)
 
