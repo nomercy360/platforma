@@ -54,6 +54,19 @@ func (h Handler) CreateCart(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdCart)
 }
 
+func currencyFromContext(c echo.Context) string {
+	locale := langFromContext(c)
+
+	switch locale {
+	case "en":
+		return "USD"
+	case "ru", "by":
+		return "BYN"
+	default:
+		return "USD"
+	}
+}
+
 func (h Handler) AddItemToCart(c echo.Context) error {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 
@@ -85,7 +98,7 @@ func (h Handler) AddItemToCart(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to save line item")
 	}
 
-	cart, err := h.st.GetCartByID(id, langFromContext(c))
+	cart, err := h.st.GetCartByID(id, langFromContext(c), currencyFromContext(c))
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")
@@ -103,7 +116,7 @@ func (h Handler) GetCart(c echo.Context) error {
 		return terrors.BadRequest(err, "invalid cart id")
 	}
 
-	cart, err := h.st.GetCartByID(id, langFromContext(c))
+	cart, err := h.st.GetCartByID(id, langFromContext(c), currencyFromContext(c))
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")
@@ -157,7 +170,7 @@ func (h Handler) ApplyDiscount(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to update cart discount")
 	}
 
-	cart, err := h.st.GetCartByID(cartID, langFromContext(c))
+	cart, err := h.st.GetCartByID(cartID, langFromContext(c), currencyFromContext(c))
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")
@@ -179,7 +192,7 @@ func (h Handler) DropDiscount(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to drop cart discount")
 	}
 
-	cart, err := h.st.GetCartByID(cartID, langFromContext(c))
+	cart, err := h.st.GetCartByID(cartID, langFromContext(c), currencyFromContext(c))
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")
@@ -216,7 +229,7 @@ func (h Handler) UpdateCartItem(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to update item quantity")
 	}
 
-	cart, err := h.st.GetCartByID(cartID, langFromContext(c))
+	cart, err := h.st.GetCartByID(cartID, langFromContext(c), currencyFromContext(c))
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")
@@ -240,7 +253,7 @@ func (h Handler) RemoveCartItem(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to remove item")
 	}
 
-	cart, err := h.st.GetCartByID(cartID, langFromContext(c))
+	cart, err := h.st.GetCartByID(cartID, langFromContext(c), currencyFromContext(c))
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")

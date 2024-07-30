@@ -75,7 +75,7 @@ func (cc *CustomerContext) Scan(src interface{}) error {
 	return nil
 }
 
-func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
+func (s Storage) GetCartByID(id int64, locale, currency string) (*Cart, error) {
 	var cart Cart
 	q := `
 		SELECT 
@@ -106,7 +106,7 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		GROUP BY
 			c.id, p.currency_code;`
 
-	row := s.db.QueryRow(q, currencyFromLocale(locale), currencyFromLocale(locale), id)
+	row := s.db.QueryRow(q, currency, currency, id)
 
 	err := row.Scan(
 		&cart.ID,
@@ -303,7 +303,7 @@ func (s Storage) CreateCart(cart Cart, locale string) (*Cart, error) {
 		}
 	}
 
-	return s.GetCartByID(id, locale)
+	return s.GetCartByID(id, locale, currencyFromLocale(locale))
 }
 
 func (s Storage) DeleteCart(id int64) error {

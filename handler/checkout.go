@@ -47,9 +47,9 @@ func (h Handler) Checkout(c echo.Context) error {
 	}
 
 	// get locale from header
-	// locale := langFromContext(c)
+	locale := langFromContext(c)
 
-	locale := "ru"
+	// locale := "ru"
 
 	customer, err := h.st.GetCustomerByEmail(req.Email)
 
@@ -89,7 +89,8 @@ func (h Handler) Checkout(c echo.Context) error {
 		log.Infof("Customer updated: %v", customer)
 	}
 
-	cart, err := h.st.GetCartByID(req.CartID, locale)
+	// Никита попросил использовать только BYN для Bepaid - USD не поддерживается
+	cart, err := h.st.GetCartByID(req.CartID, locale, "BYN")
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")
