@@ -323,3 +323,9 @@ func (s Storage) DropCartDiscount(cartID int64) error {
 
 	return err
 }
+
+func (s Storage) UpdateCartCustomer(cartID int64, customerID int64) error {
+	_, err := s.db.Exec("UPDATE cart SET customer_id = ? WHERE id = ?", customerID, cartID)
+
+	return err
+}

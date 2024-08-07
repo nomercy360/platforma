@@ -26,7 +26,7 @@ type storage interface {
 	SaveLineItem(li db.LineItem) error
 	GetCustomerByEmail(email string) (*db.Customer, error)
 	GetCustomerByID(id int64) (*db.Customer, error)
-	SaveCustomer(c db.Customer) (*db.Customer, error)
+	AddCustomer(c db.Customer) (*db.Customer, error)
 	CreateOrder(o db.Order) (*db.Order, error)
 	GetDiscount(query db.DiscountQuery) (*db.Discount, error)
 	UpdateDiscountUsageCount(id int64) error
@@ -38,6 +38,7 @@ type storage interface {
 	UpdateLineItemQuantity(li int64, quantity int) error
 	RemoveLineItem(li int64) error
 	UpdateCustomer(c *db.Customer) (*db.Customer, error)
+	UpdateCartCustomer(cartID int64, customerID int64) error
 }
 
 type JWTClaims struct {

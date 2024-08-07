@@ -56,7 +56,7 @@ func (s Storage) Migrate() error {
 		CREATE TABLE IF NOT EXISTS customers (
 		    id INTEGER PRIMARY KEY,
 		    name TEXT,
-		    email TEXT,
+		    email TEXT NOT NULL,
 		    phone TEXT,
 		    country TEXT,
 		    address TEXT,
