@@ -138,6 +138,11 @@ func (h Handler) Checkout(c echo.Context) error {
 				SuccessUrl:      fmt.Sprintf("%s/en/orders?orderId=%d", h.config.WebURL, order.ID),
 				Language:        locale,
 				AutoReturn:      "0",
+				WidgetStyle: payment.BepaidStyle{Widget: payment.BepaidWidgetStyle{
+					BackgroundColor: "#262626",
+					ButtonsColor:    "#262626",
+					BackgroundType:  "2",
+				}},
 			},
 			Order: payment.BepaidOrder{
 				Amount:      order.Total * 100,

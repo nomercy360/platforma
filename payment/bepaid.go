@@ -44,6 +44,7 @@ type BepaidSettings struct {
 	AnotherCardToggle   BepaidAnotherCardToggle `json:"another_card_toggle,omitempty"`
 	PaymentMethod       BepaidPaymentMethod     `json:"payment_method,omitempty"`
 	AutoReturn          string                  `json:"auto_return,omitempty"`
+	WidgetStyle         BepaidStyle             `json:"style,omitempty"`
 }
 
 type BepaidPaymentMethod struct {
@@ -125,6 +126,132 @@ type BepaidTransaction struct {
 	ManuallyCorrectedAt *time.Time `json:"manually_corrected_at"`
 	Language            string     `json:"language"`
 	ID                  string     `json:"id"`
+}
+
+type BepaidWidgetStyle struct {
+	BackgroundColor      string `json:"backgroundColor"`
+	ButtonsColor         string `json:"buttonsColor"`
+	BackgroundType       string `json:"backgroundType"`
+	BackgroundCustomLeft string `json:"backgroundCustomLeft"`
+	FontFamily           string `json:"fontFamily"`
+	Color                string `json:"color"`
+	FontSize             string `json:"fontSize"`
+	FontSmooth           string `json:"fontSmooth"`
+	FontStyle            string `json:"fontStyle"`
+	FontVariant          string `json:"fontVariant"`
+	FontWeight           string `json:"fontWeight"`
+	LineHeight           string `json:"lineHeight"`
+	LetterSpacing        string `json:"letterSpacing"`
+	TextAlign            string `json:"textAlign"`
+	TextDecoration       string `json:"textDecoration"`
+	TextShadow           string `json:"textShadow"`
+	TextTransform        string `json:"textTransform"`
+}
+
+type BepaidStyle struct {
+	Widget BepaidWidgetStyle `json:"widget"`
+	Header struct {
+		Shop struct {
+			Margin string `json:"margin"`
+		} `json:"shop"`
+		Close struct {
+			Margin string `json:"margin"`
+		} `json:"close"`
+		SecureInfo struct {
+			Margin string `json:"margin"`
+			Text   string `json:"text"`
+		} `json:"secureInfo"`
+	} `json:"header"`
+	Price struct {
+		Margin string `json:"margin"`
+	} `json:"price"`
+	Description struct {
+		Margin string `json:"margin"`
+	} `json:"description"`
+	Button struct {
+		BorderRadius    string `json:"borderRadius"`
+		BackgroundColor string `json:"backgroundColor"`
+		Card            struct {
+			BorderRadius    string `json:"borderRadius"`
+			BackgroundColor string `json:"backgroundColor"`
+			Text            string `json:"text"`
+			FontFamily      string `json:"fontFamily"`
+			Color           string `json:"color"`
+			FontSize        string `json:"fontSize"`
+			FontSmooth      string `json:"fontSmooth"`
+			FontStyle       string `json:"fontStyle"`
+			FontVariant     string `json:"fontVariant"`
+			FontWeight      string `json:"fontWeight"`
+			LineHeight      string `json:"lineHeight"`
+			LetterSpacing   string `json:"letterSpacing"`
+			TextAlign       string `json:"textAlign"`
+			TextDecoration  string `json:"textDecoration"`
+			TextShadow      string `json:"textShadow"`
+			TextTransform   string `json:"textTransform"`
+		} `json:"card"`
+		Brands struct {
+			BorderRadius    string `json:"borderRadius"`
+			BackgroundColor string `json:"backgroundColor"`
+			Text            string `json:"text"`
+			FontFamily      string `json:"fontFamily"`
+			Color           string `json:"color"`
+			FontSize        string `json:"fontSize"`
+			FontSmooth      string `json:"fontSmooth"`
+			FontStyle       string `json:"fontStyle"`
+			FontVariant     string `json:"fontVariant"`
+			FontWeight      string `json:"fontWeight"`
+			LineHeight      string `json:"lineHeight"`
+			LetterSpacing   string `json:"letterSpacing"`
+			TextAlign       string `json:"textAlign"`
+			TextDecoration  string `json:"textDecoration"`
+			TextShadow      string `json:"textShadow"`
+			TextTransform   string `json:"textTransform"`
+		} `json:"brands"`
+		Pay struct {
+			BorderRadius    string `json:"borderRadius"`
+			BackgroundColor string `json:"backgroundColor"`
+			Text            string `json:"text"`
+			FontFamily      string `json:"fontFamily"`
+			Color           string `json:"color"`
+			FontSize        string `json:"fontSize"`
+			FontSmooth      string `json:"fontSmooth"`
+			FontStyle       string `json:"fontStyle"`
+			FontVariant     string `json:"fontVariant"`
+			FontWeight      string `json:"fontWeight"`
+			LineHeight      string `json:"lineHeight"`
+			LetterSpacing   string `json:"letterSpacing"`
+			TextAlign       string `json:"textAlign"`
+			TextDecoration  string `json:"textDecoration"`
+			TextShadow      string `json:"textShadow"`
+			TextTransform   string `json:"textTransform"`
+		} `json:"pay"`
+	} `json:"button"`
+	Inputs struct {
+		BackgroundColor string `json:"backgroundColor"`
+		Holder          struct {
+			BackgroundColor string `json:"backgroundColor"`
+		} `json:"holder"`
+		Cvc struct {
+			Type            string `json:"type"`
+			BackgroundColor string `json:"backgroundColor"`
+		} `json:"cvc"`
+	} `json:"inputs"`
+	CardFace struct {
+		BackgroundColor    string `json:"backgroundColor"`
+		BackgroundImage    string `json:"backgroundImage"`
+		BackgroundPosition string `json:"backgroundPosition"`
+		BackgroundSize     string `json:"backgroundSize"`
+		BackgroundRepeat   string `json:"backgroundRepeat"`
+	} `json:"cardFace"`
+	Footer struct {
+		Logo struct {
+		} `json:"logo"`
+		SecureInfo struct {
+			Margin string `json:"margin"`
+			Text   string `json:"text"`
+		} `json:"secureInfo"`
+		AdditionalLogos []string `json:"additional_logos"`
+	} `json:"footer"`
 }
 
 func CreatePaymentToken(request BepaidTokenRequest, apiURL, shopID, shopSecret string) (*BepaidTokenResponse, error) {
