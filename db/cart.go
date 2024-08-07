@@ -11,7 +11,7 @@ import (
 type Cart struct {
 	ID             int64           `json:"id" db:"id"`
 	Items          []LineItem      `json:"items" db:"items"`
-	CustomerID     *int            `json:"customer_id" db:"customer_id"`
+	CustomerID     *int64          `json:"customer_id" db:"customer_id"`
 	CurrencyCode   string          `json:"currency_code" db:"currency_code"`
 	CurrencySymbol string          `json:"currency_symbol" db:"currency_symbol"`
 	Total          int             `json:"total" db:"total"`
@@ -24,11 +24,13 @@ type Cart struct {
 	DeletedAt      *time.Time      `json:"deleted_at" db:"deleted_at"`
 	Context        CustomerContext `json:"context" db:"context"`
 	DiscountAmount int             `json:"discount_amount" db:"-"`
+	Customer       *Customer       `json:"customer" db:"-"`
 }
 
 type CustomerContext struct {
-	UserAgent string `json:"user_agent" db:"user_agent"`
-	IP        string `json:"ip" db:"ip"`
+	UserAgent string  `json:"user_agent" db:"user_agent"`
+	IP        string  `json:"ip" db:"ip"`
+	Country   *string `json:"country" db:"country"`
 }
 
 func currencyFromLocale(locale string) string {
@@ -168,6 +170,15 @@ func (s Storage) GetCartByID(id int64, locale, currency string) (*Cart, error) {
 		} else {
 			cart.Total += 25
 		}
+	}
+
+	if cart.CustomerID != nil {
+		customer, err := s.GetCustomerByID(*cart.CustomerID)
+		if err != nil {
+			return nil, err
+		}
+
+		cart.Customer = customer
 	}
 
 	return &cart, nil

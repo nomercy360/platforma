@@ -74,7 +74,7 @@ func (s Storage) GetCustomerByID(id int64) (*Customer, error) {
 func (s Storage) AddCustomer(c Customer) (*Customer, error) {
 	query := `
 		INSERT INTO customers (email)
-		VALUES (?);
+		VALUES (?) ON CONFLICT (email) DO NOTHING;
 	`
 
 	res, err := s.db.Exec(query, c.Email)

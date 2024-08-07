@@ -40,9 +40,12 @@ func (h Handler) CreateCart(c echo.Context) error {
 
 	ua := c.Request().UserAgent()
 
+	country := c.Request().Header.Get("CF-IPCountry")
+
 	cart.Context = db.CustomerContext{
 		IP:        ip,
 		UserAgent: ua,
+		Country:   &country,
 	}
 
 	createdCart, err := h.st.CreateCart(cart, langFromContext(c))
@@ -280,10 +283,15 @@ func (h Handler) SaveCartCustomer(c echo.Context) error {
 		return terrors.BadRequest(errors.New("invalid email"), "invalid email")
 	}
 
-	customer, err := h.st.AddCustomer(req)
+	customer, err := h.st.GetCustomerByEmail(req.Email)
 
-	if err != nil {
-		return terrors.InternalServerError(err, "failed to add customer")
+	if err != nil && errors.Is(err, db.ErrNotFound) {
+		customer, err = h.st.AddCustomer(req)
+		if err != nil {
+			return terrors.InternalServerError(err, "failed to add customer")
+		}
+	} else if err != nil {
+		return terrors.InternalServerError(err, "failed to get customer")
 	}
 
 	if err := h.st.UpdateCartCustomer(cartID, customer.ID); err != nil {
