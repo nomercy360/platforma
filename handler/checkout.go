@@ -19,10 +19,10 @@ type CartItem struct {
 }
 
 type CheckoutRequest struct {
-	CartID     int64                  `json:"cart_id"`
+	CartID     int64                  `json:"cart_id" validate:"required"`
 	Provider   string                 `json:"provider" validate:"required"`
 	Name       string                 `json:"name" validate:"required"`
-	CustomerID int64                  `json:"customer_id"`
+	CustomerID int64                  `json:"customer_id" validate:"required"`
 	Phone      string                 `json:"phone" validate:"required"`
 	Country    string                 `json:"country" validate:"required"`
 	Address    string                 `json:"address" validate:"required"`
@@ -121,11 +121,35 @@ func (h Handler) Checkout(c echo.Context) error {
 				SuccessUrl:      fmt.Sprintf("%s/en/orders?orderId=%d", h.config.WebURL, order.ID),
 				Language:        locale,
 				AutoReturn:      "0",
-				WidgetStyle: payment.BepaidStyle{Widget: payment.BepaidWidgetStyle{
-					BackgroundColor: "#262626",
-					ButtonsColor:    "#262626",
-					BackgroundType:  "2",
-				}},
+				WidgetStyle: map[string]interface{}{
+					"widget": map[string]interface{}{
+						"backgroundColor": "#ffffff",
+						"buttonsColor":    "#262626",
+						"backgroundType":  "2",
+						"color":           "#262626",
+						"fontSize":        "15px",
+						"fontWeight":      "400",
+						"lineHeight":      "21px",
+					},
+					"inputs": map[string]interface{}{
+						"backgroundColor": "#f8f8f8",
+						"holder": map[string]interface{}{
+							"backgroundColor": "#f8f8f8",
+						},
+					},
+					"button": map[string]interface{}{
+						"backgroundColor": "#262626",
+						"pay": map[string]interface{}{
+							"color": "#ffffff",
+						},
+						"card": map[string]interface{}{
+							"color": "#ffffff",
+						},
+						"brands": map[string]interface{}{
+							"color": "#ffffff",
+						},
+					},
+				},
 			},
 			Order: payment.BepaidOrder{
 				Amount:      order.Total * 100,
