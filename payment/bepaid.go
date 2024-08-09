@@ -44,6 +44,7 @@ type BepaidSettings struct {
 	AnotherCardToggle   BepaidAnotherCardToggle `json:"another_card_toggle,omitempty"`
 	PaymentMethod       BepaidPaymentMethod     `json:"payment_method,omitempty"`
 	AutoReturn          string                  `json:"auto_return,omitempty"`
+	WidgetStyle         interface{}             `json:"style,omitempty"`
 }
 
 type BepaidPaymentMethod struct {

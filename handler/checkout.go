@@ -19,16 +19,16 @@ type CartItem struct {
 }
 
 type CheckoutRequest struct {
-	CartID    int64                  `json:"cart_id"`
-	Provider  string                 `json:"provider" validate:"required"`
-	Name      string                 `json:"name" validate:"required"`
-	Email     string                 `json:"email" validate:"required,email"`
-	Phone     string                 `json:"phone" validate:"required"`
-	Country   string                 `json:"country" validate:"required"`
-	Address   string                 `json:"address" validate:"required"`
-	ZIP       string                 `json:"zip" validate:"required"`
-	PromoCode *string                `json:"promo_code"`
-	Metadata  map[string]interface{} `json:"metadata"`
+	CartID     int64                  `json:"cart_id" validate:"required"`
+	Provider   string                 `json:"provider" validate:"required"`
+	Name       string                 `json:"name" validate:"required"`
+	CustomerID int64                  `json:"customer_id" validate:"required"`
+	Phone      string                 `json:"phone" validate:"required"`
+	Country    string                 `json:"country" validate:"required"`
+	Address    string                 `json:"address" validate:"required"`
+	ZIP        string                 `json:"zip" validate:"required"`
+	PromoCode  *string                `json:"promo_code"`
+	Metadata   map[string]interface{} `json:"metadata"`
 }
 
 type CheckoutResponse struct {
@@ -51,34 +51,17 @@ func (h Handler) Checkout(c echo.Context) error {
 
 	// locale := "ru"
 
-	customer, err := h.st.GetCustomerByEmail(req.Email)
+	customer, err := h.st.GetCustomerByID(req.CustomerID)
 
-	if err != nil && errors.Is(err, db.ErrNotFound) {
-		newCustomer := db.Customer{
-			Name:    req.Name,
-			Email:   req.Email,
-			Phone:   req.Phone,
-			Country: req.Country,
-			Address: req.Address,
-			ZIP:     req.ZIP,
-		}
-
-		customer, err = h.st.SaveCustomer(newCustomer)
-
-		if err != nil {
-			return terrors.InternalServerError(err, "failed to save customer")
-		}
-
-		log.Infof("Customer created: %v", customer)
-	} else if err != nil {
+	if err != nil {
 		return terrors.InternalServerError(err, "failed to get customer")
 	} else {
 		// update customer info
-		customer.Name = req.Name
-		customer.Phone = req.Phone
-		customer.Country = req.Country
-		customer.Address = req.Address
-		customer.ZIP = req.ZIP
+		customer.Name = &req.Name
+		customer.Phone = &req.Phone
+		customer.Country = &req.Country
+		customer.Address = &req.Address
+		customer.ZIP = &req.ZIP
 
 		customer, err = h.st.UpdateCustomer(customer)
 
@@ -138,6 +121,35 @@ func (h Handler) Checkout(c echo.Context) error {
 				SuccessUrl:      fmt.Sprintf("%s/en/orders?orderId=%d", h.config.WebURL, order.ID),
 				Language:        locale,
 				AutoReturn:      "0",
+				WidgetStyle: map[string]interface{}{
+					"widget": map[string]interface{}{
+						"backgroundColor": "#ffffff",
+						"buttonsColor":    "#262626",
+						"backgroundType":  "2",
+						"color":           "#262626",
+						"fontSize":        "15px",
+						"fontWeight":      "400",
+						"lineHeight":      "21px",
+					},
+					"inputs": map[string]interface{}{
+						"backgroundColor": "#f8f8f8",
+						"holder": map[string]interface{}{
+							"backgroundColor": "#f8f8f8",
+						},
+					},
+					"button": map[string]interface{}{
+						"backgroundColor": "#262626",
+						"pay": map[string]interface{}{
+							"color": "#ffffff",
+						},
+						"card": map[string]interface{}{
+							"color": "#ffffff",
+						},
+						"brands": map[string]interface{}{
+							"color": "#ffffff",
+						},
+					},
+				},
 			},
 			Order: payment.BepaidOrder{
 				Amount:      order.Total * 100,
@@ -146,13 +158,13 @@ func (h Handler) Checkout(c echo.Context) error {
 				TrackingID:  strconv.FormatInt(order.ID, 10),
 			},
 			Customer: payment.BepaidCustomer{
-				Email:     req.Email,
-				FirstName: req.Name,
-				LastName:  req.Name,
-				Address:   req.Address,
-				ZIP:       req.ZIP,
-				Country:   req.Country,
-				Phone:     req.Phone,
+				Email:     customer.Email,
+				FirstName: *customer.Name,
+				LastName:  *customer.Name,
+				Address:   *customer.Address,
+				ZIP:       *customer.ZIP,
+				Country:   *customer.Country,
+				Phone:     *customer.Phone,
 			},
 		},
 	}

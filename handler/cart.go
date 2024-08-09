@@ -40,9 +40,12 @@ func (h Handler) CreateCart(c echo.Context) error {
 
 	ua := c.Request().UserAgent()
 
+	country := c.Request().Header.Get("CF-IPCountry")
+
 	cart.Context = db.CustomerContext{
 		IP:        ip,
 		UserAgent: ua,
+		Country:   &country,
 	}
 
 	createdCart, err := h.st.CreateCart(cart, langFromContext(c))
@@ -258,6 +261,50 @@ func (h Handler) RemoveCartItem(c echo.Context) error {
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")
 	} else if err != nil {
+		return terrors.InternalServerError(err, "failed to get cart")
+	}
+
+	return c.JSON(http.StatusOK, cart)
+}
+
+func (h Handler) SaveCartCustomer(c echo.Context) error {
+	cartID, _ := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	if cartID == 0 {
+		return terrors.BadRequest(errors.New("invalid cart id"), "invalid cart id")
+	}
+
+	var req db.Customer
+	if err := c.Bind(&req); err != nil {
+		return err
+	}
+
+	if req.Email == "" {
+		return terrors.BadRequest(errors.New("invalid email"), "invalid email")
+	}
+
+	customer, err := h.st.GetCustomerByEmail(req.Email)
+
+	if err != nil && errors.Is(err, db.ErrNotFound) {
+		customer, err = h.st.AddCustomer(req)
+		if err != nil {
+			return terrors.InternalServerError(err, "failed to add customer")
+		}
+	} else if err != nil {
+		return terrors.InternalServerError(err, "failed to get customer")
+	}
+
+	if err := h.st.UpdateCartCustomer(cartID, customer.ID); err != nil {
+		return terrors.InternalServerError(err, "failed to update cart customer")
+	}
+
+	cart, err := h.st.GetCartByID(cartID, langFromContext(c), currencyFromContext(c))
+
+	if err != nil && errors.Is(err, db.ErrNotFound) {
+		return terrors.NotFound(err, "cart not found")
+	}
+
+	if err != nil {
 		return terrors.InternalServerError(err, "failed to get cart")
 	}
 

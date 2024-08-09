@@ -45,7 +45,8 @@ func (s Storage) GetDiscount(query DiscountQuery) (*Discount, error) {
 	`
 
 	if query.Code != "" {
-		q += " WHERE code = ?"
+		// convert both to uppercase to make it case-insensitive
+		q += " WHERE UPPER(code) = UPPER(?)"
 		args = query.Code
 	} else {
 		q += " WHERE id = ?"
