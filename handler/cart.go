@@ -12,7 +12,7 @@ import (
 type CreateCartRequest struct {
 	VariantID int64  `json:"variant_id" validate:"required"`
 	Quantity  int    `json:"quantity" validate:"required,min=1"`
-	Currency  string `json:"currency_code" validate:"required"`
+	Currency  string `json:"currency_code" validate:"required,iso4217"`
 }
 
 func (h Handler) CreateCart(c echo.Context) error {

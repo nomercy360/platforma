@@ -287,8 +287,8 @@ func (s Storage) GetLineItems(query LineItemQuery) ([]LineItem, error) {
 }
 
 func (s Storage) CreateCart(cart Cart, locale string) (*Cart, error) {
-	res, err := s.db.Exec("INSERT INTO cart (customer_id, context) VALUES (?, ?)",
-		cart.CustomerID, cart.Context)
+	res, err := s.db.Exec("INSERT INTO cart (customer_id, context, currency_code) VALUES (?, ?, ?)",
+		cart.CustomerID, cart.Context, cart.CurrencyCode)
 
 	if err != nil {
 		return nil, err

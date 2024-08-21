@@ -81,10 +81,40 @@ func listProductQuery(locale string) string {
 	return query
 }
 
+func (s Storage) fetchPrices(productID int64) ([]Prices, error) {
+	q := `SELECT pp.currency_code, c.symbol, pp.price FROM product_prices pp LEFT JOIN currencies c ON pp.currency_code = c.code  WHERE product_id = ?`
+
+	rows, err := s.db.Query(q, productID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	prices := make([]Prices, 0)
+
+	for rows.Next() {
+		var currencyCode, currencySymbol string
+		var price int
+
+		if err := rows.Scan(&currencyCode, &currencySymbol, &price); err != nil {
+			return nil, err
+		}
+
+		prices = append(prices, Prices{
+			CurrencyCode:   currencyCode,
+			CurrencySymbol: currencySymbol,
+			Price:          price,
+		})
+	}
+
+	return prices, nil
+}
+
 func (s Storage) ListProducts(locale string) ([]Product, error) {
 	query := listProductQuery(locale)
 
-	query += fmt.Sprintf(" WHERE p.is_published = TRUE AND pp.price > 1 GROUP BY p.id")
+	query += fmt.Sprintf(" WHERE p.is_published = TRUE GROUP BY p.id")
 
 	rows, err := s.db.Query(query)
 	if err != nil {
@@ -97,8 +127,7 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 
 	for rows.Next() {
 		var id int64
-		var price int
-		var handle, name, description, materials, imageUrl, currency, currencySymbol, variantsJSON string
+		var handle, name, description, materials, imageUrl, variantsJSON string
 		var imageUrls ArrayString
 
 		if err := rows.Scan(
@@ -107,9 +136,6 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 			&name,
 			&description,
 			&materials,
-			&currency,
-			&currencySymbol,
-			&price,
 			&imageUrl,
 			&imageUrls,
 			&variantsJSON,
@@ -134,13 +160,13 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 		}
 
 		// fetch prices
+		prices, err := s.fetchPrices(id)
 
-		q := `SELECT pp.currency_code, c.symbol, pp.price FROM product_prices pp LEFT JOIN currencies c ON pp.currency_code = c.code  WHERE product_id = ?`
-
-		rows, err := s.db.Query(q, id)
 		if err != nil {
 			return nil, err
 		}
+
+		product.Prices = prices
 
 		products = append(products, product)
 	}
@@ -179,9 +205,6 @@ func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
 		&product.Name,
 		&product.Description,
 		&product.Materials,
-		&product.CurrencyCode,
-		&product.CurrencySymbol,
-		&product.Price,
 		&product.Image,
 		&imageUrls,
 		&variantsJSON,
@@ -198,6 +221,15 @@ func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
 
 	product.Variants = variants
 	product.Images = imageUrls
+
+	// fetch prices
+	prices, err := s.fetchPrices(product.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	product.Prices = prices
 
 	return &product, nil
 }
