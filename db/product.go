@@ -31,18 +31,22 @@ func (as ArrayString) Value() (driver.Value, error) {
 	return strings.Join(as, ";"), nil
 }
 
+type Prices struct {
+	CurrencyCode   string `json:"currency_code"`
+	CurrencySymbol string `json:"currency_symbol"`
+	Price          int    `json:"price"`
+}
+
 type Product struct {
-	ID             int64            `json:"id"`
-	Handle         string           `json:"handle"`
-	Name           string           `json:"name"`
-	Description    string           `json:"description"`
-	Variants       []ProductVariant `json:"variants"`
-	Image          string           `json:"image"`
-	Images         []string         `json:"images"`
-	CurrencyCode   string           `json:"currency_code"`
-	CurrencySymbol string           `json:"currency_symbol"`
-	Price          int              `json:"price"`
-	Materials      string           `json:"materials"`
+	ID          int64            `json:"id"`
+	Handle      string           `json:"handle"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Variants    []ProductVariant `json:"variants"`
+	Image       string           `json:"image"`
+	Images      []string         `json:"images"`
+	Materials   string           `json:"materials"`
+	Prices      []Prices         `json:"prices"`
 }
 
 type ProductVariant struct {
@@ -57,24 +61,20 @@ func listProductQuery(locale string) string {
 	switch locale {
 	case "ru", "by":
 		query = `
-		SELECT p.id, p.handle, pt_ru.name, pt_ru.description, pt_ru.materials, pp.currency_code, c.symbol, pp.price,
+		SELECT p.id, p.handle, pt_ru.name, pt_ru.description, pt_ru.materials,
 		       p.cover_image_url, p.image_urls,
 		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
 		FROM products p
 		LEFT JOIN product_translations pt_ru ON p.id = pt_ru.product_id AND pt_ru.language = 'ru'
-		LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.currency_code = 'BYN'
 		LEFT JOIN product_variants pv ON p.id = pv.product_id
-		LEFT JOIN currencies c ON pp.currency_code = c.code
 	`
 	default:
 		query = `
-		SELECT p.id, p.handle, p.name, p.description, p.materials, pp.currency_code, c.symbol, pp.price,
+		SELECT p.id, p.handle, p.name, p.description, p.materials,
 		       p.cover_image_url, p.image_urls,
 		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
 		FROM products p
-		LEFT JOIN product_prices pp ON p.id = pp.product_id AND pp.currency_code = 'USD'
 		LEFT JOIN product_variants pv ON p.id = pv.product_id
-		LEFT JOIN currencies c ON pp.currency_code = c.code
 	`
 	}
 
@@ -123,17 +123,23 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 		}
 
 		product := Product{
-			ID:             id,
-			Handle:         handle,
-			Name:           name,
-			CurrencyCode:   currency,
-			CurrencySymbol: currencySymbol,
-			Price:          price,
-			Description:    description,
-			Materials:      materials,
-			Image:          imageUrl,
-			Variants:       variants,
-			Images:         imageUrls,
+			ID:          id,
+			Handle:      handle,
+			Name:        name,
+			Description: description,
+			Materials:   materials,
+			Image:       imageUrl,
+			Variants:    variants,
+			Images:      imageUrls,
+		}
+
+		// fetch prices
+
+		q := `SELECT pp.currency_code, c.symbol, pp.price FROM product_prices pp LEFT JOIN currencies c ON pp.currency_code = c.code  WHERE product_id = ?`
+
+		rows, err := s.db.Query(q, id)
+		if err != nil {
+			return nil, err
 		}
 
 		products = append(products, product)

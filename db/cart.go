@@ -77,7 +77,7 @@ func (cc *CustomerContext) Scan(src interface{}) error {
 	return nil
 }
 
-func (s Storage) GetCartByID(id int64, locale, currency string) (*Cart, error) {
+func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 	var cart Cart
 	q := `
 		SELECT 
@@ -90,7 +90,7 @@ func (s Storage) GetCartByID(id int64, locale, currency string) (*Cart, error) {
 			COALESCE(SUM(p.price * li.quantity), 0) AS subtotal,
 			COALESCE(SUM(p.price * li.quantity), 0) AS total,
 			COALESCE(SUM(li.quantity), 0) AS count,
-			COALESCE(p.currency_code, ?) AS currency,
+			c.currency_code,
 			COALESCE(cr.symbol, '$') AS currency_symbol,
 			c.discount_id
 		FROM
@@ -100,7 +100,7 @@ func (s Storage) GetCartByID(id int64, locale, currency string) (*Cart, error) {
 		LEFT JOIN
 			product_variants pv ON li.variant_id = pv.id
 		LEFT JOIN
-			product_prices p ON pv.product_id = p.product_id AND p.currency_code = ?
+			product_prices p ON pv.product_id = p.product_id AND p.currency_code = c.currency_code
 		LEFT JOIN
 			currencies cr ON p.currency_code = cr.code
 		WHERE
@@ -108,7 +108,7 @@ func (s Storage) GetCartByID(id int64, locale, currency string) (*Cart, error) {
 		GROUP BY
 			c.id, p.currency_code;`
 
-	row := s.db.QueryRow(q, currency, currency, id)
+	row := s.db.QueryRow(q, id)
 
 	err := row.Scan(
 		&cart.ID,
@@ -314,7 +314,13 @@ func (s Storage) CreateCart(cart Cart, locale string) (*Cart, error) {
 		}
 	}
 
-	return s.GetCartByID(id, locale, currencyFromLocale(locale))
+	return s.GetCartByID(id, locale)
+}
+
+func (s Storage) UpdateCartCurrency(cartID int64, currency string) error {
+	_, err := s.db.Exec("UPDATE cart SET currency_code = ? WHERE id = ?", currency, cartID)
+
+	return err
 }
 
 func (s Storage) DeleteCart(id int64) error {

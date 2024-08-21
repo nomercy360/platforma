@@ -73,7 +73,7 @@ func (h Handler) Checkout(c echo.Context) error {
 	}
 
 	// Никита попросил использовать только BYN для Bepaid - USD не поддерживается
-	cart, err := h.st.GetCartByID(req.CartID, locale, "BYN")
+	cart, err := h.st.GetCartByID(req.CartID, locale)
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
 		return terrors.NotFound(err, "cart not found")

@@ -74,6 +74,7 @@ func (s Storage) Migrate() error {
 		    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    deleted_at TIMESTAMP,
+		    currency_code TEXT,
 		    context TEXT,
 		    FOREIGN KEY (customer_id) REFERENCES customers (id),
 		    FOREIGN KEY (discount_id) REFERENCES discounts (id)

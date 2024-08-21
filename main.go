@@ -197,6 +197,7 @@ func main() {
 	g.DELETE("/cart/:id/items/:item_id", h.RemoveCartItem)
 	g.DELETE("/cart/:id/discounts", h.DropDiscount)
 	g.POST("/cart/:id/customer", h.SaveCartCustomer)
+	g.POST("/cart/:id/currency", h.UpdateCartCurrency)
 
 	//g.PUT("/cart/:id/products", h.AddProductToCart)
 	//g.DELETE("/cart/:id/products/:product_id", h.RemoveProductFromCart)

@@ -21,8 +21,8 @@ func New(st storage, config config.Default) Handler {
 type storage interface {
 	ListProducts(locale string) ([]db.Product, error)
 	GetProduct(query db.GetProductQuery) (*db.Product, error)
-	CreateCart(cart db.Cart, locale string) (*db.Cart, error)
-	GetCartByID(cartID int64, locale, currency string) (*db.Cart, error)
+	CreateCart(cart db.Cart, lang string) (*db.Cart, error)
+	GetCartByID(cartID int64, locale string) (*db.Cart, error)
 	SaveLineItem(li db.LineItem) error
 	GetCustomerByEmail(email string) (*db.Customer, error)
 	GetCustomerByID(id int64) (*db.Customer, error)
@@ -39,6 +39,7 @@ type storage interface {
 	RemoveLineItem(li int64) error
 	UpdateCustomer(c *db.Customer) (*db.Customer, error)
 	UpdateCartCustomer(cartID int64, customerID int64) error
+	UpdateCartCurrency(cartID int64, currency string) error
 }
 
 type JWTClaims struct {
