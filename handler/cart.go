@@ -15,6 +15,22 @@ type CreateCartRequest struct {
 	Currency  string `json:"currency_code" validate:"required,iso4217"`
 }
 
+func getCountryFromContext(c echo.Context) *string {
+	if countryHeader := c.Request().Header.Get("Cf-Ipcountry"); countryHeader != "" {
+		return &countryHeader
+	}
+
+	return nil
+}
+
+func getIPFromContext(c echo.Context) string {
+	if ip := c.Request().Header.Get("Cf-Connecting-Ip"); ip != "" {
+		return ip
+	}
+
+	return c.RealIP()
+}
+
 func (h Handler) CreateCart(c echo.Context) error {
 	var req CreateCartRequest
 	if err := c.Bind(&req); err != nil {
@@ -35,19 +51,12 @@ func (h Handler) CreateCart(c echo.Context) error {
 		},
 	}
 
-	ip := c.Request().Header.Get("CF-Connecting-IP")
-	if ip == "" {
-		ip = c.RealIP()
-	}
-
 	ua := c.Request().UserAgent()
 
-	country := c.Request().Header.Get("CF-IPCountry")
-
 	cart.Context = db.CustomerContext{
-		IP:        ip,
+		IP:        getIPFromContext(c),
 		UserAgent: ua,
-		Country:   &country,
+		Country:   getCountryFromContext(c),
 	}
 
 	createdCart, err := h.st.CreateCart(cart, langFromContext(c))
@@ -275,6 +284,8 @@ func (h Handler) SaveCartCustomer(c echo.Context) error {
 	customer, err := h.st.GetCustomerByEmail(req.Email)
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
+		country := getCountryFromContext(c)
+		req.Country = country
 		customer, err = h.st.AddCustomer(req)
 		if err != nil {
 			return terrors.InternalServerError(err, "failed to add customer")
