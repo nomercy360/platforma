@@ -276,4 +276,3 @@ VALUES (1, 2, 'Черное платье с накидкой',
 
 INSERT INTO discounts (id, value, code, type, is_active)
 VALUES (1, 10, 'PLUMFIRST', 'percentage', true);
---- 11, 12, 19, 20, 21, 22, 23, 24, 25, 26
