@@ -2,7 +2,9 @@ package handler
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/plutov/paypal/v4"
 	"rednit/config"
+	"rednit/payment"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,10 +14,16 @@ import (
 type Handler struct {
 	st     storage
 	config config.Default
+	paypal paymentPaypal
 }
 
-func New(st storage, config config.Default) Handler {
-	return Handler{st: st, config: config}
+func New(st storage, config config.Default, p paymentPaypal) Handler {
+	return Handler{st: st, config: config, paypal: p}
+}
+
+type paymentPaypal interface {
+	CreatePaypalOrder(request payment.PayPalRequest) (*paypal.Order, error)
+	CapturePaypalOrder(orderID string) (*paypal.CaptureOrderResponse, error)
 }
 
 type storage interface {
@@ -31,7 +39,7 @@ type storage interface {
 	GetDiscount(query db.DiscountQuery) (*db.Discount, error)
 	UpdateDiscountUsageCount(id int64) error
 	UpdateOrder(o *db.Order) (*db.Order, error)
-	GetOrderByID(id int64) (*db.Order, error)
+	GetOrder(query db.GetOrderQuery) (*db.Order, error)
 	UpdateLineItemsOrderID(cartID, orderID int64) error
 	UpdateCartDiscount(cartID, discountID int64) error
 	DropCartDiscount(cartID int64) error

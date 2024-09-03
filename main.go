@@ -17,6 +17,7 @@ import (
 	"rednit/config"
 	"rednit/db"
 	"rednit/handler"
+	"rednit/payment"
 	"rednit/terrors"
 	"strings"
 	"time"
@@ -166,7 +167,12 @@ func main() {
 		e.Logger.Fatalf("failed to migrate db: %v", err)
 	}
 
-	h := handler.New(sql, cfg)
+	paypal, err := payment.NewPaypalClient(cfg.PayPal.ClientID, cfg.PayPal.ClientSecret, cfg.PayPal.LiveMode)
+	if err != nil {
+		e.Logger.Fatalf("failed to create paypal client: %v", err)
+	}
+
+	h := handler.New(sql, cfg, paypal)
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
@@ -198,6 +204,7 @@ func main() {
 	g.DELETE("/cart/:id/discounts", h.DropDiscount)
 	g.POST("/cart/:id/customer", h.SaveCartCustomer)
 	g.POST("/cart/:id/currency", h.UpdateCartCurrency)
+	g.POST("/paypal/capture", h.CapturePaypalPayment)
 
 	//g.PUT("/cart/:id/products", h.AddProductToCart)
 	//g.DELETE("/cart/:id/products/:product_id", h.RemoveProductFromCart)

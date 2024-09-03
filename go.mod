@@ -1,6 +1,8 @@
 module rednit
 
-go 1.22
+go 1.23
+
+toolchain go1.23.0
 
 require (
 	github.com/caarlos0/env/v11 v11.0.1
@@ -10,6 +12,7 @@ require (
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/labstack/gommon v0.4.2
 	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/plutov/paypal/v4 v4.11.0
 )
 
 require (

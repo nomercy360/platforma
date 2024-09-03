@@ -87,32 +87,127 @@ VALUES (15, 31, 'XS-S', 10),
        (26, 54, 'M-L', 10);
 
 
-INSERT INTO product_prices (product_id, id, price, currency_code)
-VALUES (15, 29, 60, 'USD'),
-       (15, 30, 264, 'BYN'),
-       (16, 31, 250, 'USD'),
-       (16, 32, 820, 'BYN'),
-       (17, 33, 220, 'USD'),
-       (17, 34, 730, 'BYN'),
-       (18, 35, 135, 'USD'),
-       (18, 36, 430, 'BYN'),
-       (19, 37, 250, 'USD'),
-       (19, 38, 820, 'BYN'),
-       (20, 39, 60, 'USD'),
-       (20, 40, 405, 'BYN'),
-       (21, 41, 150, 'USD'),
-       (21, 42, 400, 'BYN'),
-       (22, 43, 250, 'USD'),
-       (22, 44, 880, 'BYN'),
-       (23, 45, 280, 'USD'),
-       (23, 46, 990, 'BYN'),
-       (24, 47, 380, 'USD'),
-       (24, 48, 1150, 'BYN'),
-       (25, 49, 225, 'USD'),
-       (25, 50, 735, 'BYN'),
-       (26, 51, 250, 'USD'),
-       (26, 52, 840, 'BYN');
+INSERT INTO variant_prices (variant_id, price, currency_code)
+VALUES (31, 60, 'USD'),
+       (31, 264, 'BYN'),
+       (32, 60, 'USD'),
+       (32, 264, 'BYN'),
 
+       (33, 250, 'USD'),
+       (33, 820, 'BYN'),
+       (34, 250, 'USD'),
+       (34, 820, 'BYN'),
+
+       (35, 220, 'USD'),
+       (35, 730, 'BYN'),
+       (36, 220, 'USD'),
+       (36, 730, 'BYN'),
+
+       (37, 135, 'USD'),
+       (37, 430, 'BYN'),
+       (38, 135, 'USD'),
+       (38, 430, 'BYN'),
+
+       (39, 250, 'USD'),
+       (39, 820, 'BYN'),
+       (40, 250, 'USD'),
+       (40, 820, 'BYN'),
+
+       (41, 60, 'USD'),
+       (41, 405, 'BYN'),
+       (42, 60, 'USD'),
+       (42, 405, 'BYN'),
+
+       (43, 150, 'USD'),
+       (43, 400, 'BYN'),
+       (44, 150, 'USD'),
+       (44, 400, 'BYN'),
+
+       (45, 250, 'USD'),
+       (45, 880, 'BYN'),
+       (46, 250, 'USD'),
+       (46, 880, 'BYN'),
+
+       (47, 280, 'USD'),
+       (47, 990, 'BYN'),
+       (48, 280, 'USD'),
+       (48, 990, 'BYN'),
+
+       (49, 380, 'USD'),
+       (49, 1150, 'BYN'),
+       (50, 380, 'USD'),
+       (50, 1150, 'BYN'),
+
+       (51, 225, 'USD'),
+       (51, 735, 'BYN'),
+       (52, 225, 'USD'),
+       (52, 735, 'BYN'),
+
+       (53, 250, 'USD'),
+       (53, 840, 'BYN'),
+       (54, 250, 'USD'),
+       (54, 840, 'BYN');
+-- 30% discount for each variant
+INSERT INTO sale_prices (variant_id, sale_price, currency_code, starts_at, ends_at)
+VALUES (31, ROUND(60 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (31, ROUND(264 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (32, ROUND(60 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (32, ROUND(264 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (33, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (33, ROUND(820 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (34, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (34, ROUND(820 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (35, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (35, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (36, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (36, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (37, ROUND(135 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (37, ROUND(430 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (38, ROUND(135 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (38, ROUND(430 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (39, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (39, ROUND(820 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (40, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (40, ROUND(820 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (41, ROUND(60 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (41, ROUND(405 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (42, ROUND(60 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (42, ROUND(405 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (43, ROUND(150 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (43, ROUND(400 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (44, ROUND(150 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (44, ROUND(400 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (45, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (45, ROUND(880 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (46, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (46, ROUND(880 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (47, ROUND(280 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (47, ROUND(990 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (48, ROUND(280 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (48, ROUND(990 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (49, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (49, ROUND(1150 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (50, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (50, ROUND(1150 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (51, ROUND(225 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (51, ROUND(735 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (52, ROUND(225 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (52, ROUND(735 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (53, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (53, ROUND(840 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (54, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (54, ROUND(840 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days'));
 
 INSERT INTO product_translations (product_id, id, name, description, materials, language)
 VALUES (15, 29, 'Шёлковый мешочек на тонких ремешках',

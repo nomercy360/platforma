@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -32,26 +33,44 @@ func (o Object) Value() (driver.Value, error) {
 }
 
 type Order struct {
-	ID             int64      `db:"id" json:"id"`
-	CustomerID     int64      `db:"customer_id" json:"customer_id"`
-	CartID         int64      `db:"cart_id" json:"cart_id"`
-	Status         string     `db:"status" json:"status"`
-	PaymentStatus  string     `db:"payment_status" json:"payment_status"`
-	ShippingStatus string     `db:"shipping_status" json:"shipping_status"`
-	Total          int        `db:"total" json:"total"`
-	Subtotal       int        `db:"subtotal" json:"subtotal"`
-	DiscountID     *int64     `db:"discount_id" json:"discount_id"`
-	CurrencyCode   string     `db:"currency_code" json:"currency_code"`
-	Metadata       Object     `db:"metadata" json:"metadata"`
-	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
-	DeletedAt      *time.Time `db:"deleted_at" json:"deleted_at"`
-	PaymentID      *string    `db:"payment_id" json:"payment_id"`
-	Customer       *Customer  `json:"customer"`
-	Items          []LineItem `json:"items"`
+	ID              int64      `db:"id" json:"id"`
+	CustomerID      int64      `db:"customer_id" json:"customer_id"`
+	CartID          int64      `db:"cart_id" json:"cart_id"`
+	Status          string     `db:"status" json:"status"`
+	PaymentStatus   string     `db:"payment_status" json:"payment_status"`
+	ShippingStatus  string     `db:"shipping_status" json:"shipping_status"`
+	Total           int        `db:"total" json:"total"`
+	Subtotal        int        `db:"subtotal" json:"subtotal"`
+	DiscountID      *int64     `db:"discount_id" json:"discount_id"`
+	CurrencyCode    string     `db:"currency_code" json:"currency_code"`
+	Metadata        Object     `db:"metadata" json:"metadata"`
+	CreatedAt       time.Time  `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time  `db:"updated_at" json:"updated_at"`
+	DeletedAt       *time.Time `db:"deleted_at" json:"deleted_at"`
+	PaymentID       *string    `db:"payment_id" json:"payment_id"`
+	PaymentProvider string     `db:"payment_provider" json:"payment_provider"`
+	Customer        *Customer  `json:"customer"`
+	Items           []LineItem `json:"items"`
 }
 
-func (s Storage) GetOrderByID(id int64) (*Order, error) {
+func (o *Order) ToString() string {
+	var itemsString string
+	for _, item := range o.Items {
+		itemsString += fmt.Sprintf("%s(%s) x %d", item.ProductName, item.VariantName, item.Quantity)
+		if item != o.Items[len(o.Items)-1] {
+			itemsString += ", "
+		}
+	}
+
+	return fmt.Sprintf("#%d: %s", o.ID, itemsString)
+}
+
+type GetOrderQuery struct {
+	ID        *int64
+	PaymentID *string
+}
+
+func (s Storage) GetOrder(params GetOrderQuery) (*Order, error) {
 	order := new(Order)
 
 	query := `
@@ -69,11 +88,22 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 			   o.deleted_at,
 			   o.currency_code,
 			   o.metadata,
-			   o.payment_id
-		FROM orders o		
-		WHERE o.id = ?;`
+			   o.payment_id,
+			   o.payment_provider
+		FROM orders o`
 
-	row := s.db.QueryRow(query, id)
+	var args []interface{}
+	if params.ID != nil {
+		query += " WHERE o.id = ?"
+		args = append(args, *params.ID)
+	} else if params.PaymentID != nil {
+		query += " WHERE o.payment_id = ?"
+		args = append(args, *params.PaymentID)
+	} else {
+		return nil, errors.New("either ID or PaymentID must be provided")
+	}
+
+	row := s.db.QueryRow(query, args...)
 
 	err := row.Scan(
 		&order.ID,
@@ -91,6 +121,7 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 		&order.CurrencyCode,
 		&order.Metadata,
 		&order.PaymentID,
+		&order.PaymentProvider,
 	)
 
 	if err != nil && IsNoRowsError(err) {
@@ -105,7 +136,13 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 		return nil, err
 	}
 
-	order.Items, err = s.GetLineItems(LineItemQuery{OrderID: id, Currency: order.CurrencyCode, Locale: "en"})
+	itemsParams := LineItemQuery{
+		OrderID:  order.ID,
+		Currency: order.CurrencyCode,
+		Locale:   "en",
+	}
+
+	order.Items, err = s.GetLineItems(itemsParams)
 
 	if err != nil {
 		return nil, err
@@ -116,11 +153,19 @@ func (s Storage) GetOrderByID(id int64) (*Order, error) {
 
 func (s Storage) CreateOrder(o Order) (*Order, error) {
 	query := `
-		INSERT INTO orders (customer_id, cart_id, status, payment_status, shipping_status, total, subtotal, discount_id, currency_code, metadata, payment_id)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+		INSERT INTO orders (customer_id, cart_id, status, payment_status, shipping_status, total, subtotal, discount_id, currency_code, metadata, payment_id, payment_provider)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 	`
 
-	res, err := s.db.Exec(query, o.CustomerID, o.CartID, o.Status, o.PaymentStatus, o.ShippingStatus, o.Total, o.Subtotal, o.DiscountID, o.CurrencyCode, o.Metadata, o.PaymentID)
+	res, err := s.db.Exec(query,
+		o.CustomerID, o.CartID,
+		o.Status, o.PaymentStatus,
+		o.ShippingStatus, o.Total,
+		o.Subtotal, o.DiscountID,
+		o.CurrencyCode, o.Metadata,
+		o.PaymentID, o.PaymentProvider,
+	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +176,7 @@ func (s Storage) CreateOrder(o Order) (*Order, error) {
 		return nil, err
 	}
 
-	return s.GetOrderByID(id)
+	return s.GetOrder(GetOrderQuery{ID: &id})
 }
 
 func (s Storage) UpdateOrder(o *Order) (*Order, error) {
@@ -146,5 +191,5 @@ func (s Storage) UpdateOrder(o *Order) (*Order, error) {
 		return nil, err
 	}
 
-	return s.GetOrderByID(o.ID)
+	return s.GetOrder(GetOrderQuery{ID: &o.ID})
 }

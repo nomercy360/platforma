@@ -103,35 +103,156 @@ VALUES (1, 1, 'XS', 10),
        (14, 30, 'M-L', 20);
 
 
-INSERT INTO product_prices (product_id, id, price, currency_code)
-VALUES (1, 1, 320, 'USD'),
-       (1, 2, 1060, 'BYN'),
-       (2, 3, 540, 'USD'),
-       (2, 4, 1760, 'BYN'),
-       (3, 5, 440, 'USD'),
-       (3, 6, 1450, 'BYN'),
-       (4, 7, 380, 'USD'),
-       (4, 8, 1255, 'BYN'),
-       (5, 9, 480, 'USD'),
-       (5, 10, 1590, 'BYN'),
-       (6, 11, 520, 'USD'),
-       (6, 12, 1700, 'BYN'),
-       (7, 13, 600, 'USD'),
-       (7, 14, 1960, 'BYN'),
-       (8, 15, 220, 'USD'),
-       (8, 16, 730, 'BYN'),
-       (9, 17, 250, 'USD'),
-       (9, 18, 825, 'BYN'),
-       (10, 19, 380, 'USD'),
-       (10, 20, 1255, 'BYN'),
-       (11, 21, 270, 'USD'),
-       (11, 22, 890, 'BYN'),
-       (12, 23, 290, 'USD'),
-       (12, 24, 950, 'BYN'),
-       (13, 25, 220, 'USD'),
-       (13, 26, 730, 'BYN'),
-       (14, 27, 220, 'USD'),
-       (14, 28, 730, 'BYN');
+INSERT INTO variant_prices (variant_id, price, currency_code)
+VALUES (1, 320, 'USD'),
+       (1, 1060, 'BYN'),
+       (2, 320, 'USD'),
+       (2, 1060, 'BYN'),
+       (3, 320, 'USD'),
+       (3, 1060, 'BYN'),
+       (4, 320, 'USD'),
+       (4, 1060, 'BYN'),
+
+       (5, 540, 'USD'),
+       (5, 1760, 'BYN'),
+       (6, 540, 'USD'),
+       (6, 1760, 'BYN'),
+
+       (7, 440, 'USD'),
+       (7, 1450, 'BYN'),
+       (8, 440, 'USD'),
+       (8, 1450, 'BYN'),
+
+       (9, 380, 'USD'),
+       (9, 1255, 'BYN'),
+       (10, 380, 'USD'),
+       (10, 1255, 'BYN'),
+
+       (11, 480, 'USD'),
+       (11, 1590, 'BYN'),
+       (12, 480, 'USD'),
+       (12, 1590, 'BYN'),
+
+       (13, 520, 'USD'),
+       (13, 1700, 'BYN'),
+       (14, 520, 'USD'),
+       (14, 1700, 'BYN'),
+
+       (15, 600, 'USD'),
+       (15, 1960, 'BYN'),
+       (16, 600, 'USD'),
+       (16, 1960, 'BYN'),
+
+       (17, 220, 'USD'),
+       (17, 730, 'BYN'),
+       (18, 220, 'USD'),
+       (18, 730, 'BYN'),
+
+       (19, 250, 'USD'),
+       (19, 825, 'BYN'),
+       (20, 250, 'USD'),
+       (20, 825, 'BYN'),
+
+       (21, 380, 'USD'),
+       (21, 1255, 'BYN'),
+       (22, 380, 'USD'),
+       (22, 1255, 'BYN'),
+
+       (23, 270, 'USD'),
+       (23, 890, 'BYN'),
+       (24, 270, 'USD'),
+       (24, 890, 'BYN'),
+
+       (25, 290, 'USD'),
+       (25, 950, 'BYN'),
+       (26, 290, 'USD'),
+       (26, 950, 'BYN'),
+
+       (27, 220, 'USD'),
+       (27, 730, 'BYN'),
+       (28, 220, 'USD'),
+       (28, 730, 'BYN'),
+
+       (29, 220, 'USD'),
+       (29, 730, 'BYN'),
+       (30, 220, 'USD'),
+       (30, 730, 'BYN');
+
+-- 30% discount for each variant
+INSERT INTO sale_prices (variant_id, sale_price, currency_code, starts_at, ends_at)
+VALUES (1, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (1, ROUND(1060 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (2, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (2, ROUND(1060 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (3, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (3, ROUND(1060 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (4, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (4, ROUND(1060 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (5, ROUND(540 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (5, ROUND(1760 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (6, ROUND(540 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (6, ROUND(1760 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (7, ROUND(440 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (7, ROUND(1450 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (8, ROUND(440 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (8, ROUND(1450 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (9, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (9, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (10, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (10, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (11, ROUND(480 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (11, ROUND(1590 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (12, ROUND(480 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (12, ROUND(1590 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (13, ROUND(520 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (13, ROUND(1700 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (14, ROUND(520 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (14, ROUND(1700 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (15, ROUND(600 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (15, ROUND(1960 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (16, ROUND(600 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (16, ROUND(1960 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (17, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (17, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (18, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (18, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (19, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (19, ROUND(825 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (20, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (20, ROUND(825 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (21, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (21, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (22, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (22, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (23, ROUND(270 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (23, ROUND(890 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (24, ROUND(270 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (24, ROUND(890 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (25, ROUND(290 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (25, ROUND(950 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (26, ROUND(290 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (26, ROUND(950 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (27, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (27, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (28, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (28, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (29, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (29, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (30, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (30, ROUND(730 * 0.7 / 10) * 10, 'BYN', '2024-09-01 00:00:00', '2024-12-31 23:59:59');
 
 
 INSERT INTO product_translations (product_id, id, name, description, materials, language)
@@ -160,7 +281,7 @@ VALUES (1, 2, 'Черное платье с накидкой',
         'Простая летняя комбинация, превратившаяся в полноценное платье со сложной деталью в виде асимметричного плеча закрученного в легкий жгут. Свободный силуэт подчеркнут складками на талии, создающими иллюзию более приталенного платья.',
         '100% хлопок', 'ru'),
        (9, 18, 'Розовое свободное платье',
-        'Cвободный силуэт платья вдохновлен ночной рубашкой: cвободной, длинной и летящей. Конструкция усложнена асимметричной линии низа и пышными рукавами, длину которых можно контролировать с помощью скрытой резинки в шве.',
+        'Свободный силуэт платья вдохновлен ночной рубашкой: cвободной, длинной и летящей. Конструкция усложнена асимметричной линии низа и пышными рукавами, длину которых можно контролировать с помощью скрытой резинки в шве.',
         '100% хлопок', 'ru'),
        (10, 20, 'Платье с диагональным разрезом',
         'Платье сложной конструкции с диагональными разрезами и линиями на талии для более прилегающего силуэта. Необработанные края из шёлка сложного розового оттенка осыпаются густой бахромой создавая естественную россыпь шёлковых капель на рукавах и юбке. Идеальный вариант для вечернего мероприятия с акцентными аксессуарами и дневной прогулки с друзьями в удобных сандалях и сумкой через плечо.',

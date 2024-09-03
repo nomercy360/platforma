@@ -35,6 +35,8 @@ type Prices struct {
 	CurrencyCode   string `json:"currency_code"`
 	CurrencySymbol string `json:"currency_symbol"`
 	Price          int    `json:"price"`
+	SalePrice      *int   `json:"sale_price"`
+	IsOnSale       bool   `json:"is_on_sale"`
 }
 
 type Product struct {
@@ -46,77 +48,58 @@ type Product struct {
 	Image       string           `json:"image"`
 	Images      []string         `json:"images"`
 	Materials   string           `json:"materials"`
-	Prices      []Prices         `json:"prices"`
 }
 
 type ProductVariant struct {
-	ID        int64  `json:"id"`
-	Name      string `json:"name"`
-	Available int    `json:"available"`
+	ID        int64    `json:"id"`
+	Name      string   `json:"name"`
+	Available int      `json:"available"`
+	Prices    []Prices `json:"prices"`
 }
 
-func listProductQuery(locale string) string {
-	var query string
+func listProductQuery() string {
 
-	switch locale {
-	case "ru", "by":
-		query = `
-		SELECT p.id, p.handle, pt_ru.name, pt_ru.description, pt_ru.materials,
-		       p.cover_image_url, p.image_urls,
-		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
+	return `
+		SELECT p.id,
+			   p.handle,
+			   COALESCE(pt.name, p.name)               AS name,
+			   COALESCE(pt.description, p.description) AS name,
+			   COALESCE(pt.materials, p.materials)     AS name,
+			   p.cover_image_url,
+			   p.image_urls,
+			   json_group_array(
+					   json_object(
+							   'id', pv.id,
+							   'name', pv.name,
+							   'available', pv.available,
+							   'prices', (SELECT json_group_array(
+														 json_object(
+																 'currency_code', vp.currency_code,
+																 'currency_symbol', c.symbol,
+																 'price', vp.price,
+																 'sale_price', sp.sale_price
+														 )
+												 )
+										  FROM variant_prices vp
+												   JOIN currencies c ON vp.currency_code = c.code
+												   LEFT JOIN sale_prices sp
+															 ON vp.variant_id = sp.variant_id AND c.code = sp.currency_code
+										  WHERE vp.variant_id = pv.id
+										  GROUP BY vp.variant_id)
+					   )
+			   )                                       AS variants
 		FROM products p
-		LEFT JOIN product_translations pt_ru ON p.id = pt_ru.product_id AND pt_ru.language = 'ru'
-		LEFT JOIN product_variants pv ON p.id = pv.product_id
-	`
-	default:
-		query = `
-		SELECT p.id, p.handle, p.name, p.description, p.materials,
-		       p.cover_image_url, p.image_urls,
-		       json_group_array(distinct json_object('id', pv.id, 'name', pv.name, 'available', pv.available)) AS variants
-		FROM products p
-		LEFT JOIN product_variants pv ON p.id = pv.product_id
-	`
-	}
-
-	return query
-}
-
-func (s Storage) fetchPrices(productID int64) ([]Prices, error) {
-	q := `SELECT pp.currency_code, c.symbol, pp.price FROM product_prices pp LEFT JOIN currencies c ON pp.currency_code = c.code  WHERE product_id = ?`
-
-	rows, err := s.db.Query(q, productID)
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	prices := make([]Prices, 0)
-
-	for rows.Next() {
-		var currencyCode, currencySymbol string
-		var price int
-
-		if err := rows.Scan(&currencyCode, &currencySymbol, &price); err != nil {
-			return nil, err
-		}
-
-		prices = append(prices, Prices{
-			CurrencyCode:   currencyCode,
-			CurrencySymbol: currencySymbol,
-			Price:          price,
-		})
-	}
-
-	return prices, nil
+				 LEFT JOIN product_variants pv ON p.id = pv.product_id
+				 LEFT JOIN product_translations pt ON p.id = pt.product_id AND pt.language = ?
+`
 }
 
 func (s Storage) ListProducts(locale string) ([]Product, error) {
-	query := listProductQuery(locale)
+	query := listProductQuery()
 
 	query += fmt.Sprintf(" WHERE p.is_published = TRUE GROUP BY p.id")
 
-	rows, err := s.db.Query(query)
+	rows, err := s.db.Query(query, locale)
 	if err != nil {
 		return nil, err
 	}
@@ -159,15 +142,6 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 			Images:      imageUrls,
 		}
 
-		// fetch prices
-		prices, err := s.fetchPrices(id)
-
-		if err != nil {
-			return nil, err
-		}
-
-		product.Prices = prices
-
 		products = append(products, product)
 	}
 
@@ -181,9 +155,9 @@ type GetProductQuery struct {
 }
 
 func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
-	query := listProductQuery(q.Locale)
+	query := listProductQuery()
 
-	var args []interface{}
+	args := []interface{}{q.Locale}
 
 	if q.Handle != "" {
 		query += " WHERE p.handle = ? AND p.is_published = TRUE"
@@ -221,15 +195,6 @@ func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
 
 	product.Variants = variants
 	product.Images = imageUrls
-
-	// fetch prices
-	prices, err := s.fetchPrices(product.ID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	product.Prices = prices
 
 	return &product, nil
 }

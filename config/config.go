@@ -8,11 +8,18 @@ type Default struct {
 	//JWTSecret string `env:"JWT_SECRET,required"`
 	DBPath string `env:"DB_PATH" envDefault:"./app.db"`
 	WebURL string `env:"WEB_URL" envDefault:"http://localhost:3000"`
+	PayPal PayPal
 }
 
 type ServerConfig struct {
 	Port string `env:"SERVER_PORT" envDefault:"8080"`
 	Host string `env:"SERVER_HOST" envDefault:"localhost"`
+}
+
+type PayPal struct {
+	ClientID     string `env:"PAYPAL_CLIENT_ID,required"`
+	ClientSecret string `env:"PAYPAL_CLIENT_SECRET,required"`
+	LiveMode     bool   `env:"PAYPAL_LIVE_MODE" envDefault:"false"`
 }
 
 type Bepaid struct {

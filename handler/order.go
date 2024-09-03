@@ -15,7 +15,7 @@ func (h Handler) GetOrder(c echo.Context) error {
 		return terrors.BadRequest(err, "invalid order id")
 	}
 
-	order, err := h.st.GetOrderByID(orderID)
+	order, err := h.st.GetOrder(db.GetOrderQuery{ID: &orderID})
 
 	if err != nil {
 		if errors.Is(err, db.ErrNotFound) {

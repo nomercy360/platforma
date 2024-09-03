@@ -87,26 +87,14 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 			c.updated_at,
 			c.deleted_at,
 			c.context,
-			COALESCE(SUM(p.price * li.quantity), 0) AS subtotal,
-			COALESCE(SUM(p.price * li.quantity), 0) AS total,
-			COALESCE(SUM(li.quantity), 0) AS count,
 			c.currency_code,
 			COALESCE(cr.symbol, '$') AS currency_symbol,
 			c.discount_id
 		FROM
 			cart c
-		LEFT JOIN
-			line_items li ON c.id = li.cart_id
-		LEFT JOIN
-			product_variants pv ON li.variant_id = pv.id
-		LEFT JOIN
-			product_prices p ON pv.product_id = p.product_id AND p.currency_code = c.currency_code
-		LEFT JOIN
-			currencies cr ON p.currency_code = cr.code
+		LEFT JOIN currencies cr ON c.currency_code = cr.code
 		WHERE
-			c.id = ?
-		GROUP BY
-			c.id, p.currency_code;`
+			c.id = ?;`
 
 	row := s.db.QueryRow(q, id)
 
@@ -117,9 +105,6 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		&cart.UpdatedAt,
 		&cart.DeletedAt,
 		&cart.Context,
-		&cart.Subtotal,
-		&cart.Total,
-		&cart.Count,
 		&cart.CurrencyCode,
 		&cart.CurrencySymbol,
 		&cart.DiscountID,
@@ -138,6 +123,19 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 	}
 
 	cart.Items = items
+	var totalDiscount int
+
+	for _, item := range items {
+		salePrice := item.Price
+		if item.SalePrice != nil {
+			salePrice = *item.SalePrice
+			totalDiscount += item.Price - *item.SalePrice
+		}
+
+		cart.Subtotal += item.Price * item.Quantity
+		cart.Count += item.Quantity
+		cart.Total += salePrice * item.Quantity
+	}
 
 	if cart.DiscountID != nil {
 		discount, err := s.GetDiscount(DiscountQuery{ID: *cart.DiscountID})
@@ -145,31 +143,29 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 			return nil, err
 		}
 
-		cart.Discount = discount
-
 		if discount.Value > 0 {
+			var discountAmount int
 			switch discount.Type {
 			case "percentage":
-				cart.Total = cart.Total - (cart.Total * discount.Value / 100)
-				cart.DiscountAmount = cart.Subtotal - cart.Total
+				discountAmount = cart.Total * discount.Value / 100
 			case "fixed":
-				cart.Total = cart.Total - discount.Value
-				cart.DiscountAmount = discount.Value
+				discountAmount = discount.Value
 			}
+
+			cart.Total -= discountAmount
+			totalDiscount += discountAmount
 		}
+
+		cart.Discount = discount
 	}
 
-	// only for testing purposes
-	if len(cart.Items) == 1 && cart.Items[0].Price == 1 {
-		cart.Total = 1
-		cart.Subtotal = 1
+	cart.DiscountAmount = totalDiscount
+
+	// delivery
+	if cart.CurrencyCode == "USD" {
+		cart.Total += 10
 	} else {
-		// delivery
-		if cart.CurrencyCode == "USD" {
-			cart.Total += 10
-		} else {
-			cart.Total += 25
-		}
+		cart.Total += 25
 	}
 
 	if cart.CustomerID != nil {
@@ -184,10 +180,8 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 	return &cart, nil
 }
 
-func lineItemQuery(locale string) string {
-	switch locale {
-	case "ru", "by":
-		return `
+func lineItemQuery() string {
+	return `
 			SELECT li.id,
 				   li.cart_id,
 				   li.order_id,
@@ -197,33 +191,17 @@ func lineItemQuery(locale string) string {
 				   li.updated_at,
 				   li.deleted_at,
 				   pv.name AS variant_name,
-				   pt.name AS product_name,
+				   COALESCE(pt.name, p.name) AS product_name,
 				   p.cover_image_url AS image_url,
-				   pp.price
+				   vp.price,
+				   sp.sale_price
 			FROM line_items li
-			JOIN main.product_variants pv on li.variant_id = pv.id
-			JOIN main.products p on pv.product_id = p.id
-			JOIN product_prices pp on p.id = pp.product_id AND pp.currency_code = ?
-			JOIN product_translations pt on p.id = pt.product_id AND pt.language = 'ru'`
-	default:
-		return `
-		SELECT li.id,
-			   li.cart_id,
-			   li.order_id,
-			   li.variant_id,
-			   li.quantity,
-			   li.created_at,
-			   li.updated_at,
-			   li.deleted_at,
-			   pv.name AS variant_name,
-			   p.name AS product_name,
-			   p.cover_image_url AS image_url,
-			   pp.price
-		FROM line_items li
-		JOIN product_variants pv on li.variant_id = pv.id
-		JOIN products p on pv.product_id = p.id
-		JOIN product_prices pp on p.id = pp.product_id AND pp.currency_code = ?`
-	}
+			JOIN product_variants pv on li.variant_id = pv.id
+			JOIN products p on pv.product_id = p.id
+			LEFT JOIN sale_prices sp on li.variant_id = sp.variant_id AND sp.currency_code = ?
+			JOIN variant_prices vp on li.variant_id = vp.variant_id AND vp.currency_code = ?
+			LEFT JOIN product_translations pt on p.id = pt.product_id AND pt.language = ?
+		`
 }
 
 type LineItemQuery struct {
@@ -234,7 +212,7 @@ type LineItemQuery struct {
 }
 
 func (s Storage) GetLineItems(query LineItemQuery) ([]LineItem, error) {
-	q := lineItemQuery(query.Locale)
+	q := lineItemQuery()
 
 	var currency string
 	if query.Currency != "" {
@@ -243,7 +221,7 @@ func (s Storage) GetLineItems(query LineItemQuery) ([]LineItem, error) {
 		currency = currencyFromLocale(query.Locale)
 	}
 
-	args := []interface{}{currency}
+	args := []interface{}{currency, currency, query.Locale}
 
 	if query.CartID > 0 {
 		q = fmt.Sprintf("%s WHERE li.cart_id = %d", q, query.CartID)
@@ -276,6 +254,7 @@ func (s Storage) GetLineItems(query LineItemQuery) ([]LineItem, error) {
 			&item.ProductName,
 			&item.ImageURL,
 			&item.Price,
+			&item.SalePrice,
 		); err != nil {
 			return nil, err
 		}

@@ -14,6 +14,7 @@ type LineItem struct {
 
 	VariantName string `db:"variant_name" json:"variant_name"`
 	Price       int    `db:"price" json:"price"`
+	SalePrice   *int   `db:"sale_price" json:"sale_price"`
 	ProductName string `db:"product_name" json:"product_name"`
 	ImageURL    string `db:"image_url" json:"image_url"`
 }

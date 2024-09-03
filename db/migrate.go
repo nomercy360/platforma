@@ -35,13 +35,14 @@ func (s Storage) Migrate() error {
 		    FOREIGN KEY (product_id) REFERENCES products (id)
 		);
 
-		CREATE TABLE IF NOT EXISTS product_prices (
-		    product_id INTEGER,
+		CREATE TABLE IF NOT EXISTS variant_prices (
+		    variant_id INTEGER,
 		    id INTEGER PRIMARY KEY,
 		    price INTEGER,
 		    currency_code TEXT,
 		    FOREIGN KEY (currency_code) REFERENCES currencies (code),
-		    UNIQUE(product_id, currency_code)
+		    FOREIGN KEY (variant_id) REFERENCES product_variants (id),
+		    UNIQUE(variant_id, currency_code)
 		);
 		
 		CREATE TABLE IF NOT EXISTS product_translations (
@@ -95,6 +96,38 @@ func (s Storage) Migrate() error {
 		    UNIQUE(cart_id, variant_id)
 		);
 
+		CREATE TABLE IF NOT EXISTS regions (
+			id INTEGER PRIMARY KEY,
+			name TEXT,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			currency_code TEXT,
+			deleted_at TIMESTAMP
+		);
+
+		CREATE TABLE IF NOT EXISTS countries (
+			id INTEGER PRIMARY KEY,
+			display_name TEXT,
+			iso_code TEXT,
+			region_id INTEGER,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			deleted_at TIMESTAMP,
+			FOREIGN KEY (region_id) REFERENCES regions (id),
+			UNIQUE(iso_code)
+		);
+
+		CREATE TABLE IF NOT EXISTS shipping_methods (
+			id INTEGER PRIMARY KEY,
+			name TEXT,
+			price INTEGER,
+			region_id INTEGER,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			deleted_at TIMESTAMP,
+			FOREIGN KEY (region_id) REFERENCES regions (id),
+			UNIQUE(name)
+		);
 		
 		CREATE TABLE IF NOT EXISTS orders (
 		    id INTEGER PRIMARY KEY,
@@ -103,19 +136,22 @@ func (s Storage) Migrate() error {
 		    discount_id INTEGER,
 		    status TEXT,
 		    payment_status TEXT,
+		    payment_provider TEXT,
+			payment_id TEXT,
 		    currency_code TEXT,
 		    shipping_status TEXT,
+		    shipping_method_id INTEGER,
 		    total INTEGER,
 		    subtotal INTEGER,
 		    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    deleted_at TIMESTAMP,
 		    metadata TEXT,
-		    payment_id TEXT,
 		    FOREIGN KEY (customer_id) REFERENCES customers (id),
 		    FOREIGN KEY (cart_id) REFERENCES cart (id),
 		    FOREIGN KEY (discount_id) REFERENCES discounts (id),
-		    FOREIGN KEY (currency_code) REFERENCES currencies (code)
+		    FOREIGN KEY (currency_code) REFERENCES currencies (code),
+		    FOREIGN KEY (shipping_method_id) REFERENCES shipping_methods (id)
 		);
 
 		CREATE TABLE IF NOT EXISTS discounts (
@@ -132,6 +168,18 @@ func (s Storage) Migrate() error {
 		    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		    deleted_at TIMESTAMP,
 		    UNIQUE(code)
+		);
+
+		CREATE TABLE IF NOT EXISTS sale_prices (
+			variant_id INTEGER,
+			sale_price INTEGER,
+			starts_at TIMESTAMP,
+			ends_at TIMESTAMP,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			currency_code TEXT,
+			FOREIGN KEY (variant_id) REFERENCES product_variants(id),
+			PRIMARY KEY (variant_id, currency_code, starts_at)
 		);
  	`
 
