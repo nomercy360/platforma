@@ -123,13 +123,10 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 	}
 
 	cart.Items = items
-	var totalDiscount int
-
 	for _, item := range items {
 		salePrice := item.Price
 		if item.SalePrice != nil {
 			salePrice = *item.SalePrice
-			totalDiscount += item.Price - *item.SalePrice
 		}
 
 		cart.Subtotal += item.Price * item.Quantity
@@ -153,13 +150,11 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 			}
 
 			cart.Total -= discountAmount
-			totalDiscount += discountAmount
+			cart.DiscountAmount = discountAmount
 		}
 
 		cart.Discount = discount
 	}
-
-	cart.DiscountAmount = totalDiscount
 
 	// delivery
 	if cart.CurrencyCode == "USD" {
