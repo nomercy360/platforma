@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/paypal/v4"
+	"log"
 	"rednit/config"
 	"rednit/payment"
 	"time"
@@ -77,4 +78,14 @@ func generateJWT(secret string, uid, chatID int64) (string, error) {
 
 func langFromContext(c echo.Context) string {
 	return c.Get("lang").(string)
+}
+
+func (h Handler) Debug(c echo.Context) error {
+	for name, headers := range c.Request().Header {
+		for _, h := range headers {
+			log.Printf("Header '%v': '%v'\n", name, h)
+		}
+	}
+
+	return c.JSON(200, "OK")
 }

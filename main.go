@@ -205,6 +205,7 @@ func main() {
 	g.POST("/cart/:id/customer", h.SaveCartCustomer)
 	g.POST("/cart/:id/currency", h.UpdateCartCurrency)
 	g.POST("/paypal/capture", h.CapturePaypalPayment)
+	g.GET("/debug", h.Debug)
 
 	//g.PUT("/cart/:id/products", h.AddProductToCart)
 	//g.DELETE("/cart/:id/products/:product_id", h.RemoveProductFromCart)
