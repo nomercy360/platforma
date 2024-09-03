@@ -58,7 +58,7 @@ VALUES (1, 'black-dress-with-cape', '/images/products/1/1.png',
         '/images/products/12/1.png;/images/products/12/2.png;/images/products/12/3.png;/images/products/12/4.png',
         'Black and white double dress',
         'A minimalist double-layer dress made from semi-transparent soft silk with a deep neckline adorned with tiny buttons. Each dress can be worn solo as an elongated top.',
-        '50% cotton, 50% silk', true),
+        '50% cotton, 50% silk', false),
        (13, 'navy-dress-with-tie-neckline', '/images/products/13/1.png',
         '/images/products/13/1.png;/images/products/13/2.png;/images/products/13/3.png',
         'Navy dress with tie neckline',
@@ -204,11 +204,6 @@ VALUES (1, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+6
        (10, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
        (10, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
 
-       (11, ROUND(480 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (11, ROUND(1590 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (12, ROUND(480 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (12, ROUND(1590 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
        (13, ROUND(520 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
        (13, ROUND(1700 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
        (14, ROUND(520 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
@@ -223,26 +218,6 @@ VALUES (1, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+6
        (17, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
        (18, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
        (18, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (19, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (19, ROUND(825 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (20, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (20, ROUND(825 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (21, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (21, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (22, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (22, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (23, ROUND(270 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (23, ROUND(890 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (24, ROUND(270 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (24, ROUND(890 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (25, ROUND(290 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (25, ROUND(950 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (26, ROUND(290 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (26, ROUND(950 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
 
        (27, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
        (27, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
@@ -301,3 +276,4 @@ VALUES (1, 2, 'Черное платье с накидкой',
 
 INSERT INTO discounts (id, value, code, type, is_active)
 VALUES (1, 10, 'PLUMFIRST', 'percentage', true);
+--- 11, 12, 19, 20, 21, 22, 23, 24, 25, 26

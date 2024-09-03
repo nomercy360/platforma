@@ -115,6 +115,11 @@ func (h Handler) Checkout(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to update line items order id")
 	}
 
+	order, err = h.st.GetOrder(db.GetOrderQuery{ID: &order.ID})
+	if err != nil {
+		return terrors.InternalServerError(err, "failed to get order")
+	}
+
 	var paymentLink string
 	if req.PaymentProvider == PaymentProviderBePaid {
 		paymentRequest := payment.BepaidTokenRequest{
