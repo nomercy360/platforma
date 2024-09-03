@@ -284,8 +284,6 @@ func (h Handler) SaveCartCustomer(c echo.Context) error {
 	customer, err := h.st.GetCustomerByEmail(req.Email)
 
 	if err != nil && errors.Is(err, db.ErrNotFound) {
-		country := getCountryFromContext(c)
-		req.Country = country
 		customer, err = h.st.AddCustomer(req)
 		if err != nil {
 			return terrors.InternalServerError(err, "failed to add customer")
