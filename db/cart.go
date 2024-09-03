@@ -116,7 +116,13 @@ func (s Storage) GetCartByID(id int64, locale string) (*Cart, error) {
 		return nil, err
 	}
 
-	items, err := s.GetLineItems(LineItemQuery{Locale: locale, CartID: id})
+	query := LineItemQuery{
+		Locale:   locale,
+		CartID:   id,
+		Currency: cart.CurrencyCode,
+	}
+
+	items, err := s.GetLineItems(query)
 
 	if err != nil {
 		return nil, err
