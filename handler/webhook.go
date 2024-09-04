@@ -20,8 +20,8 @@ func (h Handler) telegramOrderPaid(order db.Order) {
 	} else {
 		delivery = "Международная Экспресс доставка"
 	}
-	msg := fmt.Sprintf(`Заказ #%d
-Заказ оплачен через %s
+	msg := fmt.Sprintf(`%s
+Оплата: %s
 Тип доставки: %s
 Адрес доставки: %s
 Сумма заказа: %d %s
@@ -34,7 +34,7 @@ Email: %s
 Страна: %s
 Индекс: %s
 Адрес: %s`,
-		order.ID, order.PaymentProvider, delivery, *order.Customer.Address, order.Subtotal, order.CurrencyCode, order.Total, order.CurrencyCode, *order.Customer.Name, order.Customer.Email, *order.Customer.Phone, *order.Customer.Country, *order.Customer.ZIP, *order.Customer.Address)
+		order.ToString(), order.PaymentProvider, delivery, *order.Customer.Address, order.Subtotal, order.CurrencyCode, order.Total, order.CurrencyCode, *order.Customer.Name, order.Customer.Email, *order.Customer.Phone, *order.Customer.Country, *order.Customer.ZIP, *order.Customer.Address)
 
 	msg = notification.EscapeMarkdown(msg)
 
