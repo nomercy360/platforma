@@ -18,61 +18,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/select'
+import { createQuery } from '@tanstack/solid-query'
+import { listDiscounts, listOrders } from '~/lib/api'
 
-const promos = [
-  {
-    id: 1,
-    code: 'BG1SS23',
-    value: 10,
-    usage_limit: 10,
-    type: 'percentage',
-    description: '10% off on all electronics',
-    is_active: true,
-  },
-  {
-    id: 2,
-    code: 'SUMMER22',
-    value: 20,
-    usage_limit: 100,
-    type: 'percentage',
-    description: '20% off on selected clothing items',
-    is_active: true,
-  },
-  {
-    id: 3,
-    code: 'FLATDEAL',
-    value: 15,
-    usage_limit: null,
-    type: 'fixed',
-    description: 'Get $15 off on your next purchase',
-    is_active: true,
-  },
-  {
-    id: 4,
-    code: 'WELCOMENEW',
-    value: 10,
-    usage_limit: 1,
-    type: 'percentage',
-    description: 'Welcome offer - 10% off on your first purchase',
-    is_active: false,
-  },
-  {
-    id: 5,
-    code: 'FREESHIP',
-    value: 0,
-    usage_limit: 50,
-    type: 'fixed',
-    description: 'Free shipping on orders above $50',
-    is_active: true,
-  },
-]
+type Discount = {
+  id: number
+  code: string
+  value: number
+  type: string
+  usage_limit: number
+  usage_count: number
+  starts_at: string
+  ends_at: string
+  created_at: string
+  updated_at: string
+  is_active: boolean
+  description: string
+}
 
 function formatValue(value: number, type: string) {
   return type === 'percentage' ? `${value}%` : `$${value}`
 }
 
-export default function PromoPage() {
+export default function DiscountPage() {
   const [value, setValue] = createSignal<string | null>(null)
+
+  const query = createQuery(() => ({
+    queryKey: ['discounts'],
+    queryFn: async () => {
+      const { data } = await listDiscounts()
+      return data as Discount[]
+    },
+  }))
 
   return (
     <div class="flex min-h-screen w-full flex-col rounded-t-xl bg-secondary">
@@ -132,16 +109,22 @@ export default function PromoPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <For each={promos}>
-            {(promo) => (
+          <For each={query.data}>
+            {(discount) => (
               <TableRow>
-                <TableCell>{promo.id}</TableCell>
-                <TableCell>{promo.code}</TableCell>
-                <TableCell>{formatValue(promo.value, promo.type)}</TableCell>
-                <TableCell>{promo.usage_limit}</TableCell>
-                <TableCell>{promo.description}</TableCell>
+                <TableCell>{discount.id}</TableCell>
+                <TableCell>{discount.code}</TableCell>
+                <TableCell>
+                  {formatValue(discount.value, discount.type)}
+                </TableCell>
+                <TableCell>{discount.usage_limit}</TableCell>
+                <TableCell>{discount.description}</TableCell>
                 <TableCell class="float-end">
-                  <Switch checked={promo.is_active} />
+                  <Switch
+                    disabled={true}
+                    onChange={() => {}}
+                    checked={discount.is_active}
+                  />
                 </TableCell>
                 <TableCell class="text-right">
                   <button class="text-red-600 hover:underline">Delete</button>

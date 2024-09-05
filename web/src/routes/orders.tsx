@@ -20,7 +20,7 @@ import {
 } from '~/components/select'
 import { createQuery } from '@tanstack/solid-query'
 import { listCustomers, listOrders } from '~/lib/api'
-import { Customer } from '~/routes/users'
+import { Customer } from '~/routes/customers'
 
 type LineItem = {
   id: number
@@ -49,7 +49,7 @@ type Order = {
   subtotal: number
   discount_id: number | null
   currency_code: string
-  metadata: Object
+  metadata?: Record<string, any>
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -145,7 +145,7 @@ export default function OrdersPage() {
                 <TableCell>{order.customer.address}</TableCell>
                 <TableCell>{order.customer.name}</TableCell>
                 <TableCell>{order.customer.email}</TableCell>
-                <TableCell>{JSON.stringify(order.metadata)}</TableCell>
+                <TableCell>{order.metadata?.comment}</TableCell>
                 <TableCell class="flex flex-row justify-end gap-2">
                   <span>
                     {order.items?.length} items for{' '}

@@ -174,6 +174,7 @@ func main() {
 	adm.GET("/me", a.GetUserMe)
 	adm.GET("/customers", a.ListCustomers)
 	adm.GET("/orders", a.ListOrders)
+	adm.GET("/discounts", a.ListDiscounts)
 
 	adm.GET("/products", h.ListProducts)
 

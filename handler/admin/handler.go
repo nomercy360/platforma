@@ -9,6 +9,7 @@ type storage interface {
 	GetUser(db.UserQuery) (*db.User, error)
 	CreateUser(string, string) (*db.User, error)
 	ListCustomers() ([]db.Customer, error)
+	ListDiscounts() ([]db.Discount, error)
 	ListOrders() ([]db.Order, error)
 }
 

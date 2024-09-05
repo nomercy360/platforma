@@ -58,3 +58,9 @@ export async function listOrders() {
     method: 'GET',
   })
 }
+
+export async function listDiscounts() {
+  return await apiRequest('/admin/discounts', {
+    method: 'GET',
+  })
+}

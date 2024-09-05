@@ -88,3 +88,43 @@ func (s Storage) UpdateDiscountUsageCount(id int64) error {
 
 	return err
 }
+
+func (s Storage) ListDiscounts() ([]Discount, error) {
+	var discounts []Discount
+
+	query := `
+		SELECT id, code, is_active, type, usage_limit, usage_count, starts_at, ends_at, created_at, updated_at, deleted_at, value
+		FROM discounts
+	`
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var discount Discount
+		err := rows.Scan(
+			&discount.ID,
+			&discount.Code,
+			&discount.IsActive,
+			&discount.Type,
+			&discount.UsageLimit,
+			&discount.UsageCount,
+			&discount.StartsAt,
+			&discount.EndsAt,
+			&discount.CreatedAt,
+			&discount.UpdatedAt,
+			&discount.DeletedAt,
+			&discount.Value,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		discounts = append(discounts, discount)
+	}
+
+	return discounts, nil
+}
