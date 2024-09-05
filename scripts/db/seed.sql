@@ -70,6 +70,7 @@ VALUES (1, 'black-dress-with-cape', '/images/products/1/1.png',
         'This season''s favorite shade is chocolate. The dress features a relaxed silhouette with wide pleats at the waist, creating a subtle fitted effect. Diamond-shaped sleeves and a barely-there pleat on the bodice complete the look.',
         '100% cotton', true);
 
+
 INSERT INTO product_variants (product_id, id, name, available)
 VALUES (1, 1, 'XS', 10),
        (1, 2, 'S', 10),
@@ -179,45 +180,33 @@ VALUES (1, 320, 'USD'),
        (30, 730, 'BYN');
 
 -- 30% discount for each variant
+-- 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 13, 14, 15, 16, 21, 22
+
 INSERT INTO sale_prices (variant_id, sale_price, currency_code, starts_at, ends_at)
-VALUES (1, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (1, ROUND(1060 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (2, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (2, ROUND(1060 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (3, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (3, ROUND(1060 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (4, ROUND(320 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (4, ROUND(1060 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (5, ROUND(540 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (5, ROUND(1760 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (6, ROUND(540 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (6, ROUND(1760 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (7, ROUND(440 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (7, ROUND(1450 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (8, ROUND(440 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (8, ROUND(1450 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (9, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (9, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (10, ROUND(380 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (10, ROUND(1255 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (13, ROUND(520 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (13, ROUND(1700 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (14, ROUND(520 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (14, ROUND(1700 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-
-       (15, ROUND(600 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (15, ROUND(1960 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
-       (16, ROUND(600 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
-       (16, ROUND(1960 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+VALUES (11, ROUND(480 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (11, ROUND(1590 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (12, ROUND(480 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (12, ROUND(1590 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
 
        (17, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
        (17, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
        (18, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
        (18, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (19, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (19, ROUND(825 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (20, ROUND(250 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (20, ROUND(825 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (23, ROUND(270 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (23, ROUND(890 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (24, ROUND(270 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (24, ROUND(890 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+
+       (25, ROUND(290 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (25, ROUND(950 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
+       (26, ROUND(290 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
+       (26, ROUND(950 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
 
        (27, ROUND(220 * 0.7 / 5) * 5, 'USD', DATETIME('now'), DATETIME('now', '+60 days')),
        (27, ROUND(730 * 0.7 / 10) * 10, 'BYN', DATETIME('now'), DATETIME('now', '+60 days')),
