@@ -72,7 +72,7 @@ func (a Admin) LoginUser(c echo.Context) error {
 	cookie.Name = "clan_cookie"
 	cookie.Value = token
 	cookie.Secure = true
-	cookie.SameSite = http.SameSiteStrictMode
+	cookie.SameSite = http.SameSiteNoneMode
 	cookie.Path = "/"
 	cookie.MaxAge = 86400
 	cookie.HttpOnly = true
