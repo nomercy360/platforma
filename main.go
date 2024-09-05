@@ -147,7 +147,7 @@ func main() {
 	a := admin.New(sql, cfg)
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:3000", "localhost:8080"},
+		AllowOrigins:     []string{"http://localhost:3000", "https://clan-api.pages.dev", "https://plumplum.co"},
 		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: true,
