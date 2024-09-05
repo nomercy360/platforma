@@ -71,8 +71,8 @@ func (a Admin) LoginUser(c echo.Context) error {
 	cookie := new(http.Cookie)
 	cookie.Name = "clan_cookie"
 	cookie.Value = token
-	cookie.Secure = false                  // Disable for local testing
-	cookie.SameSite = http.SameSiteLaxMode // Change to http.SameSiteNoneMode for production
+	cookie.Secure = true
+	cookie.SameSite = http.SameSiteStrictMode
 	cookie.Path = "/"
 	cookie.MaxAge = 86400
 	cookie.HttpOnly = true
