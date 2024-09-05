@@ -193,3 +193,82 @@ func (s Storage) UpdateOrder(o *Order) (*Order, error) {
 
 	return s.GetOrder(GetOrderQuery{ID: &o.ID})
 }
+
+func (s Storage) ListOrders() ([]Order, error) {
+	orders := make([]Order, 0)
+
+	query := `
+		SELECT o.id,
+			   o.customer_id,
+			   o.cart_id,
+			   o.discount_id,
+			   o.status,
+			   o.payment_status,
+			   o.shipping_status,
+			   o.total,
+			   o.subtotal,
+			   o.created_at,
+			   o.updated_at,
+			   o.deleted_at,
+			   o.currency_code,
+			   o.metadata,
+			   o.payment_id,
+			   o.payment_provider
+		FROM orders o
+		ORDER BY o.created_at DESC;
+	`
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		order := new(Order)
+		err := rows.Scan(
+			&order.ID,
+			&order.CustomerID,
+			&order.CartID,
+			&order.DiscountID,
+			&order.Status,
+			&order.PaymentStatus,
+			&order.ShippingStatus,
+			&order.Total,
+			&order.Subtotal,
+			&order.CreatedAt,
+			&order.UpdatedAt,
+			&order.DeletedAt,
+			&order.CurrencyCode,
+			&order.Metadata,
+			&order.PaymentID,
+			&order.PaymentProvider,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		order.Customer, err = s.GetCustomerByID(order.CustomerID)
+
+		if err != nil {
+			return nil, err
+		}
+
+		itemsParams := LineItemQuery{
+			OrderID:  order.ID,
+			Currency: order.CurrencyCode,
+			Locale:   "en",
+		}
+
+		order.Items, err = s.GetLineItems(itemsParams)
+
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, *order)
+	}
+
+	return orders, nil
+}

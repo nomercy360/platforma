@@ -181,6 +181,17 @@ func (s Storage) Migrate() error {
 			FOREIGN KEY (variant_id) REFERENCES product_variants(id),
 			PRIMARY KEY (variant_id, currency_code, starts_at)
 		);
+
+		CREATE TABLE IF NOT EXISTS users (
+			id INTEGER PRIMARY KEY,
+			email TEXT NOT NULL,
+			password TEXT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			deleted_at TIMESTAMP,
+			role TEXT NOT NULL DEFAULT 'user',
+			UNIQUE(email)
+		);
  	`
 
 	if _, err := s.db.Exec(createTableQuery); err != nil {

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"github.com/caarlos0/env/v11"
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt/v5"
-	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"log"
@@ -16,7 +14,8 @@ import (
 	"os/signal"
 	"rednit/config"
 	"rednit/db"
-	"rednit/handler"
+	"rednit/handler/admin"
+	"rednit/handler/store"
 	"rednit/payment"
 	"rednit/terrors"
 	"strings"
@@ -119,34 +118,6 @@ func (cv *customValidator) Validate(i interface{}) error {
 	return nil
 }
 
-func getAuthConfig(secret string) echojwt.Config {
-	return echojwt.Config{
-		NewClaimsFunc: func(_ echo.Context) jwt.Claims {
-			return new(handler.JWTClaims)
-		},
-		SigningKey:             []byte(secret),
-		ContinueOnIgnoredError: true,
-		ErrorHandler: func(c echo.Context, err error) error {
-			var extErr *echojwt.TokenExtractionError
-			if !errors.As(err, &extErr) {
-				return echo.NewHTTPError(http.StatusUnauthorized, "auth is invalid")
-			}
-
-			claims := &handler.JWTClaims{
-				RegisteredClaims: jwt.RegisteredClaims{
-					ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour * 30)),
-				},
-			}
-
-			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-			c.Set("user", token)
-
-			return nil
-		},
-	}
-}
-
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -172,12 +143,14 @@ func main() {
 		e.Logger.Fatalf("failed to create paypal client: %v", err)
 	}
 
-	h := handler.New(sql, cfg, paypal)
+	h := store.New(sql, cfg, paypal)
+	a := admin.New(sql, cfg)
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		AllowOrigins:     []string{"http://localhost:3000", "localhost:8080"},
+		AllowMethods:     []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		AllowCredentials: true,
 	}))
 
 	e.Use(localeMiddleware)
@@ -190,35 +163,49 @@ func main() {
 	e.Validator = &customValidator{validator: validator.New()}
 
 	// Routes
-	g := e.Group("/api")
-	g.GET("/products", h.ListProducts)
-	g.GET("/products/:handle", h.GetProduct)
-	g.POST("/cart", h.CreateCart)
-	g.GET("/cart/:id", h.GetCart)
-	g.GET("/orders/:id", h.GetOrder)
-	g.POST("/checkout", h.Checkout)
-	g.POST("/cart/:id/discounts", h.ApplyDiscount)
-	g.POST("/cart/:id/items", h.AddItemToCart)
-	g.PUT("/cart/:id/items/:item_id", h.UpdateCartItem)
-	g.DELETE("/cart/:id/items/:item_id", h.RemoveCartItem)
-	g.DELETE("/cart/:id/discounts", h.DropDiscount)
-	g.POST("/cart/:id/customer", h.SaveCartCustomer)
-	g.POST("/cart/:id/currency", h.UpdateCartCurrency)
-	g.POST("/paypal/capture", h.CapturePaypalPayment)
-	g.GET("/debug", h.Debug)
+	api := e.Group("/api")
+
+	adm := api.Group("/admin")
+
+	adm.Use(admin.AuthMiddleware)
+
+	adm.POST("/sign-in", a.LoginUser)
+	adm.POST("/sign-up", a.CreateUser)
+	adm.GET("/me", a.GetUserMe)
+	adm.GET("/customers", a.ListCustomers)
+	adm.GET("/orders", a.ListOrders)
+
+	adm.GET("/products", h.ListProducts)
+
+	st := api.Group("/store")
+	st.GET("/products", h.ListProducts)
+	st.GET("/products/:handle", h.GetProduct)
+	st.POST("/cart", h.CreateCart)
+	st.GET("/cart/:id", h.GetCart)
+	st.GET("/orders/:id", h.GetOrder)
+	st.POST("/checkout", h.Checkout)
+	st.POST("/cart/:id/discounts", h.ApplyDiscount)
+	st.POST("/cart/:id/items", h.AddItemToCart)
+	st.PUT("/cart/:id/items/:item_id", h.UpdateCartItem)
+	st.DELETE("/cart/:id/items/:item_id", h.RemoveCartItem)
+	st.DELETE("/cart/:id/discounts", h.DropDiscount)
+	st.POST("/cart/:id/customer", h.SaveCartCustomer)
+	st.POST("/cart/:id/currency", h.UpdateCartCurrency)
+	st.POST("/paypal/capture", h.CapturePaypalPayment)
+	st.GET("/debug", h.Debug)
 
 	//g.PUT("/cart/:id/products", h.AddProductToCart)
 	//g.DELETE("/cart/:id/products/:product_id", h.RemoveProductFromCart)
 
-	g = e.Group("/webhook")
-	g.POST("/bepaid", h.BepaidNotification)
+	wh := e.Group("/webhook")
+	wh.POST("/bepaid", h.BepaidNotification)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 	// Start server
 	go func() {
 		if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			e.Logger.Fatal("shutting down the server")
+			e.Logger.Fatal("shutting down the server: %v", err)
 		}
 	}()
 

@@ -107,3 +107,40 @@ func (s Storage) UpdateCustomer(c *Customer) (*Customer, error) {
 
 	return s.GetCustomerByID(c.ID)
 }
+
+func (s Storage) ListCustomers() ([]Customer, error) {
+	var customers []Customer
+
+	query := `SELECT * FROM customers`
+	rows, err := s.db.Query(query)
+
+	if err != nil {
+		return customers, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var c Customer
+		err := rows.Scan(
+			&c.ID,
+			&c.Name,
+			&c.Email,
+			&c.Phone,
+			&c.Country,
+			&c.Address,
+			&c.ZIP,
+			&c.CreatedAt,
+			&c.UpdatedAt,
+			&c.DeletedAt,
+		)
+
+		if err != nil {
+			return customers, err
+		}
+
+		customers = append(customers, c)
+	}
+
+	return customers, nil
+}

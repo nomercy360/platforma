@@ -1,15 +1,12 @@
-package handler
+package store
 
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/plutov/paypal/v4"
 	"log"
 	"rednit/config"
-	"rednit/payment"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 	"rednit/db"
+	"rednit/payment"
 )
 
 type Handler struct {
@@ -49,31 +46,6 @@ type storage interface {
 	UpdateCustomer(c *db.Customer) (*db.Customer, error)
 	UpdateCartCustomer(cartID int64, customerID int64) error
 	UpdateCartCurrency(cartID int64, currency string) error
-}
-
-type JWTClaims struct {
-	jwt.RegisteredClaims
-	UID    int64 `json:"uid"`
-	ChatID int64 `json:"chat_id"`
-}
-
-func generateJWT(secret string, uid, chatID int64) (string, error) {
-	claims := &JWTClaims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
-		},
-		UID:    uid,
-		ChatID: chatID,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	t, err := token.SignedString([]byte(secret))
-	if err != nil {
-		return "", err
-	}
-
-	return t, nil
 }
 
 func langFromContext(c echo.Context) string {
