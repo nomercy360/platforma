@@ -49,15 +49,24 @@
     }
 }
 
+@font-face {
+    font-display: swap;
+    font-family: 'ABCFavoritCYR';
+    font-style: normal;
+    font-weight: 400;
+    src: url('/fonts/ABCFavoritCYR-Variable-Trial.woff2') format('woff2');
+}
+
 @layer base {
     * {
         @apply border-border;
+        font-family: 'ABCFavoritCYR', sans-serif;
     }
+
     body {
         @apply text-foreground;
-        font-feature-settings:
-                "rlig" 1,
-                "calt" 1;
+        font-feature-settings: "rlig" 1,
+        "calt" 1;
     }
 }
 

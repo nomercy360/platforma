@@ -4,11 +4,7 @@ import { Match, Suspense, Switch } from 'solid-js'
 import Navbar from '~/components/navbar'
 import './app.css'
 import Controls from '~/components/controls'
-import {
-  QueryClient,
-  QueryClientProvider,
-  createQuery,
-} from '@tanstack/solid-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 
 export const queryClient = new QueryClient()
 

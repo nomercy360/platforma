@@ -52,6 +52,8 @@ type Product = {
 export default function IndexPage() {
   const [value, setValue] = createSignal<string | null>(null)
 
+  const [selected, setSelected] = createSignal<Array<string>>([])
+
   const navigate = useNavigate()
 
   const query = createQuery(() => ({
@@ -69,22 +71,6 @@ export default function IndexPage() {
       navigate('/auth/login')
     }
   })
-
-  const getSalePrice = (product: Product) => {
-    const salePrice = product.variants[0].prices.find(
-      (price) => price.sale_price !== null,
-    )
-
-    return salePrice ? salePrice.sale_price : null
-  }
-
-  const getAvailability = (product: Product) => {
-    return product.variants[0].available
-  }
-
-  const getProductPrice = (product: Product) => {
-    return product.variants[0].prices[0].price
-  }
 
   const normalizeSrc = (src: string) => {
     return src.startsWith('/') ? src.slice(1) : src
@@ -108,35 +94,12 @@ export default function IndexPage() {
   }
 
   return (
-    <div class="flex min-h-screen w-full flex-col rounded-tl-2xl bg-background">
+    <div class="flex min-h-screen w-full flex-col rounded-tl-2xl bg-background pb-10">
       <div class="flex w-full flex-row items-center justify-between p-4">
         <SearchInput
           class="w-96 bg-background"
           placeholder="Start typing to search or filter products"
         />
-        <Select
-          value={value()}
-          onChange={setValue}
-          options={[
-            'Id',
-            'Item',
-            'SKU',
-            'Category',
-            'Price',
-            'Stock',
-            'Availability',
-          ]}
-          placeholder={'Sort by...'}
-          itemComponent={(props) => (
-            <SelectItem item={props.item}>{props.item.rawValue}</SelectItem>
-          )}>
-          <SelectTrigger aria-label="Fruit" class="w-[160px] bg-background">
-            <SelectValue<string>>
-              {(state) => 'Sort by ' + state.selectedOption()}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent />
-        </Select>
       </div>
       <div class="flex w-full flex-row items-start p-4">
         <ToggleGroup>
@@ -162,7 +125,16 @@ export default function IndexPage() {
         <TableHeader>
           <TableRow>
             <TableHead class="w-10">
-              <Checkbox />
+              <Checkbox
+                checked={selected().length === query.data?.length}
+                onChange={() =>
+                  selected().length === query.data?.length
+                    ? setSelected([])
+                    : setSelected(
+                        query.data!.map((product) => product.id.toString()),
+                      )
+                }
+              />
             </TableHead>
             <TableHead>Item</TableHead>
             <TableHead>SKU</TableHead>
@@ -177,7 +149,20 @@ export default function IndexPage() {
             {(product) => (
               <TableRow>
                 <TableCell>
-                  <Checkbox />
+                  <Checkbox
+                    onChange={
+                      selected().includes(product.id.toString())
+                        ? () =>
+                            setSelected(
+                              selected().filter(
+                                (id) => id !== product.id.toString(),
+                              ),
+                            )
+                        : () =>
+                            setSelected([...selected(), product.id.toString()])
+                    }
+                    checked={selected().includes(product.id.toString())}
+                  />
                 </TableCell>
                 <TableCell>
                   <div class="flex items-center">
