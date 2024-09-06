@@ -6,10 +6,11 @@ import {
   IconHome,
   IconListView,
   IconPercent,
+  IconPerson,
   IconQRCode,
 } from '~/components/icons'
 
-export default function Nav() {
+export default function Navbar() {
   const location = useLocation()
   const active = (path: string) =>
     path == location.pathname
@@ -17,7 +18,7 @@ export default function Nav() {
       : 'text-muted-foreground size-9 flex items-center justify-center'
 
   return (
-    <nav class="bg-transparent">
+    <nav class="bg-secondary">
       <ul class="container flex flex-col items-center px-2.5">
         <li class="flex items-center justify-center">
           <a href="/orders" class={active('/orders')}>
@@ -30,13 +31,18 @@ export default function Nav() {
           </a>
         </li>
         <li class="flex items-center justify-center">
-          <a href="/users" class={active('/customers')}>
+          <a href="/customers" class={active('/customers')}>
             <IconGroup class="size-6" />
           </a>
         </li>
         <li class="flex items-center justify-center">
           <a href="/discount" class={active('/discount')}>
             <IconPercent class="size-3" />
+          </a>
+        </li>
+        <li class="flex items-center justify-center">
+          <a href="/users" class={active('/users')}>
+            <IconPerson class="size-6" />
           </a>
         </li>
       </ul>

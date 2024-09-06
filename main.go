@@ -170,13 +170,14 @@ func main() {
 	adm.Use(admin.AuthMiddleware)
 
 	adm.POST("/sign-in", a.LoginUser)
-	adm.POST("/sign-up", a.CreateUser)
+	adm.POST("/users", a.CreateUser)
 	adm.GET("/me", a.GetUserMe)
 	adm.GET("/customers", a.ListCustomers)
 	adm.GET("/orders", a.ListOrders)
 	adm.GET("/discounts", a.ListDiscounts)
+	adm.GET("/users", a.ListUsers)
 
-	adm.GET("/products", h.ListProducts)
+	adm.GET("/products", a.ListProducts)
 
 	st := api.Group("/store")
 	st.GET("/products", h.ListProducts)

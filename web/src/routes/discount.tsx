@@ -52,7 +52,7 @@ export default function DiscountPage() {
   }))
 
   return (
-    <div class="flex min-h-screen w-full flex-col rounded-t-xl bg-secondary">
+    <div class="flex min-h-screen w-full flex-col rounded-tl-2xl bg-background">
       <div class="flex w-full flex-row items-center justify-between p-4">
         <SearchInput
           class="w-96 bg-background"

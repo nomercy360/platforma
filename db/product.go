@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 )
 
 type ArrayString []string
@@ -48,6 +49,10 @@ type Product struct {
 	Image       string           `json:"image"`
 	Images      []string         `json:"images"`
 	Materials   string           `json:"materials"`
+	IsPublished bool             `json:"is_published"`
+	CreatedAt   time.Time        `json:"created_at"`
+	UpdatedAt   time.Time        `json:"updated_at"`
+	DeletedAt   *time.Time       `json:"deleted_at"`
 }
 
 type ProductVariant struct {
@@ -67,6 +72,10 @@ func listProductQuery() string {
 			   COALESCE(pt.materials, p.materials)     AS name,
 			   p.cover_image_url,
 			   p.image_urls,
+			   p.is_published,
+			   p.created_at,
+			   p.updated_at,
+			   p.deleted_at,
 			   json_group_array(
 					   json_object(
 							   'id', pv.id,
@@ -94,12 +103,21 @@ func listProductQuery() string {
 `
 }
 
-func (s Storage) ListProducts(locale string) ([]Product, error) {
+type ListProductsQuery struct {
+	Locale      string
+	IsPublished bool
+}
+
+func (s Storage) ListProducts(params ListProductsQuery) ([]Product, error) {
 	query := listProductQuery()
 
-	query += fmt.Sprintf(" WHERE p.is_published = TRUE GROUP BY p.id")
+	if params.IsPublished {
+		query += " WHERE p.is_published = TRUE"
+	}
 
-	rows, err := s.db.Query(query, locale)
+	query += fmt.Sprintf(" GROUP BY p.id")
+
+	rows, err := s.db.Query(query, params.Locale)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +129,9 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 	for rows.Next() {
 		var id int64
 		var handle, name, description, materials, imageUrl, variantsJSON string
+		var isPublished bool
+		var createdAt, updatedAt time.Time
+		var deletedAt *time.Time
 		var imageUrls ArrayString
 
 		if err := rows.Scan(
@@ -121,6 +142,10 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 			&materials,
 			&imageUrl,
 			&imageUrls,
+			&isPublished,
+			&createdAt,
+			&updatedAt,
+			&deletedAt,
 			&variantsJSON,
 		); err != nil {
 			return nil, err
@@ -140,6 +165,10 @@ func (s Storage) ListProducts(locale string) ([]Product, error) {
 			Image:       imageUrl,
 			Variants:    variants,
 			Images:      imageUrls,
+			IsPublished: isPublished,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
+			DeletedAt:   deletedAt,
 		}
 
 		products = append(products, product)
@@ -181,6 +210,10 @@ func (s Storage) GetProduct(q GetProductQuery) (*Product, error) {
 		&product.Materials,
 		&product.Image,
 		&imageUrls,
+		&product.IsPublished,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+		&product.DeletedAt,
 		&variantsJSON,
 	); err != nil && IsNoRowsError(err) {
 		return nil, ErrNotFound

@@ -1,7 +1,7 @@
 import { Router } from '@solidjs/router'
 import { FileRoutes } from '@solidjs/start/router'
 import { Match, Suspense, Switch } from 'solid-js'
-import Nav from '~/components/Nav'
+import Navbar from '~/components/navbar'
 import './app.css'
 import Controls from '~/components/controls'
 import {
@@ -24,10 +24,10 @@ export default function App() {
               </main>
             </Match>
             <Match when={props.location.pathname !== '/login'}>
-              <div class="min-h-screen bg-background">
+              <div class="min-h-screen">
                 <Controls />
-                <div class="flex flex-row items-start pr-4">
-                  <Nav />
+                <div class="flex flex-row items-start">
+                  <Navbar />
                   <Suspense>{props.children}</Suspense>
                 </div>
               </div>

@@ -53,6 +53,27 @@ export async function listCustomers() {
   })
 }
 
+export async function listUsers() {
+  return await apiRequest('/admin/users', {
+    method: 'GET',
+  })
+}
+
+export async function createUser({
+  email,
+  password,
+  name,
+}: {
+  email: string
+  password: string
+  name: string | null
+}) {
+  return await apiRequest('/admin/users', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, name }),
+  })
+}
+
 export async function listOrders() {
   return await apiRequest('/admin/orders', {
     method: 'GET',

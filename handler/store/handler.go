@@ -25,7 +25,7 @@ type paymentPaypal interface {
 }
 
 type storage interface {
-	ListProducts(locale string) ([]db.Product, error)
+	ListProducts(params db.ListProductsQuery) ([]db.Product, error)
 	GetProduct(query db.GetProductQuery) (*db.Product, error)
 	CreateCart(cart db.Cart, lang string) (*db.Cart, error)
 	GetCartByID(cartID int64, locale string) (*db.Cart, error)

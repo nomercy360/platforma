@@ -12,6 +12,7 @@ type User struct {
 	UpdatedAt time.Time  `db:"updated_at" json:"updated_at"`
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
 	Role      string     `db:"role" json:"role"`
+	Name      *string    `db:"name" json:"name"`
 }
 
 type UserQuery struct {
@@ -24,7 +25,7 @@ func (s Storage) GetUser(query UserQuery) (*User, error) {
 	var args interface{}
 
 	q := `
-		SELECT id, email, password, created_at, updated_at, deleted_at
+		SELECT id, email, name, password, created_at, updated_at, deleted_at
 		FROM users
 	`
 
@@ -39,6 +40,7 @@ func (s Storage) GetUser(query UserQuery) (*User, error) {
 	err := s.db.QueryRow(q, args).Scan(
 		&user.ID,
 		&user.Email,
+		&user.Name,
 		&user.Password,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -54,17 +56,17 @@ func (s Storage) GetUser(query UserQuery) (*User, error) {
 	return &user, nil
 }
 
-func (s Storage) CreateUser(email, hashedPassword string) (*User, error) {
+func (s Storage) CreateUser(email, hashedPassword string, name *string) (*User, error) {
 	query := `
-		INSERT INTO users (email, password, created_at, updated_at)
-		VALUES (?, ?, ?, ?)
+		INSERT INTO users (email, name, password, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?)
 		RETURNING id, created_at, updated_at
 	`
 
 	now := time.Now()
 	var user User
 
-	if err := s.db.QueryRow(query, email, hashedPassword, now, now).Scan(
+	if err := s.db.QueryRow(query, email, name, hashedPassword, now, now).Scan(
 		&user.ID,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -74,4 +76,40 @@ func (s Storage) CreateUser(email, hashedPassword string) (*User, error) {
 
 	user.Email = email
 	return &user, nil
+}
+
+func (s Storage) ListUsers() ([]User, error) {
+	query := `
+		SELECT id, email, created_at, updated_at, deleted_at, role, name
+		FROM users
+	`
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	users := make([]User, 0)
+
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.DeletedAt,
+			&user.Role,
+			&user.Name,
+		); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+
+	}
+
+	return users, nil
 }

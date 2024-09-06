@@ -9,7 +9,7 @@ import (
 )
 
 func (h Handler) ListProducts(c echo.Context) error {
-	products, err := h.st.ListProducts(langFromContext(c))
+	products, err := h.st.ListProducts(db.ListProductsQuery{Locale: langFromContext(c), IsPublished: true})
 	if err != nil {
 		return terrors.InternalServerError(err, "failed to list products")
 	}

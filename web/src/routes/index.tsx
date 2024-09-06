@@ -1,4 +1,4 @@
-import { createEffect, createResource, createSignal, For } from 'solid-js'
+import { createEffect, createSignal, For } from 'solid-js'
 import {
   Table,
   TableBody,
@@ -19,11 +19,12 @@ import {
   SelectValue,
 } from '~/components/select'
 import { fetchProducts, getLoggedInUser } from '~/lib/api'
-import { queryClient } from '~/app'
-import { createQueries, createQuery } from '@tanstack/solid-query'
+import { createQuery } from '@tanstack/solid-query'
 import { useNavigate } from '@solidjs/router'
+import { Checkbox } from '~/components/checkbox'
+import { Separator } from '~/components/separator'
 
-export type Product = {
+type Product = {
   id: number
   handle: string
   name: string
@@ -32,12 +33,19 @@ export type Product = {
     id: number
     name: string
     available: number
+    prices: {
+      currency_code: string
+      currency_symbol: string
+      price: number
+      sale_price: number | null
+      is_on_sale: boolean
+    }[]
   }[]
   image: string
   images: string[]
-  currency_code: string
-  currency_symbol: string
-  price: number
+  is_published: boolean
+  created_at: string
+  updated_at: string
   deleted_at: string | null
 }
 
@@ -62,12 +70,49 @@ export default function IndexPage() {
     }
   })
 
+  const getSalePrice = (product: Product) => {
+    const salePrice = product.variants[0].prices.find(
+      (price) => price.sale_price !== null,
+    )
+
+    return salePrice ? salePrice.sale_price : null
+  }
+
+  const getAvailability = (product: Product) => {
+    return product.variants[0].available
+  }
+
+  const getProductPrice = (product: Product) => {
+    return product.variants[0].prices[0].price
+  }
+
+  const normalizeSrc = (src: string) => {
+    return src.startsWith('/') ? src.slice(1) : src
+  }
+
+  function cdnImage({
+    src,
+    width,
+    quality = 80,
+  }: {
+    src: string
+    width: number
+    quality?: number
+  }) {
+    const params = [`width=${width}`]
+    if (quality) {
+      params.push(`quality=${quality}`)
+    }
+    const paramsString = params.join(',')
+    return `https://assets.clanplatform.com/cdn-cgi/image/${paramsString}/${normalizeSrc(src)}`
+  }
+
   return (
-    <div class="flex min-h-screen w-full flex-col rounded-t-xl bg-background">
+    <div class="flex min-h-screen w-full flex-col rounded-tl-2xl bg-background">
       <div class="flex w-full flex-row items-center justify-between p-4">
         <SearchInput
           class="w-96 bg-background"
-          placeholder="Search by name, SKU, price, etc."
+          placeholder="Start typing to search or filter products"
         />
         <Select
           value={value()}
@@ -116,44 +161,49 @@ export default function IndexPage() {
         <TableCaption>A list of your recent products.</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead class="w-[40px]">#</TableHead>
+            <TableHead class="w-10">
+              <Checkbox />
+            </TableHead>
             <TableHead>Item</TableHead>
             <TableHead>SKU</TableHead>
             <TableHead>Category</TableHead>
             <TableHead class="text-right">Price</TableHead>
-            <TableHead class="text-right">On sale</TableHead>
-            <TableHead class="text-right">Stock</TableHead>
+            <TableHead class="text-right">Sale</TableHead>
             <TableHead class="text-right">Availability</TableHead>
-            <TableHead class="text-right">View</TableHead>
-            <TableHead class="text-right">Delete</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <For each={query.data as Product[]}>
             {(product) => (
               <TableRow>
-                <TableCell>{product.id}</TableCell>
+                <TableCell>
+                  <Checkbox />
+                </TableCell>
                 <TableCell>
                   <div class="flex items-center">
                     <img
-                      src={product.image}
+                      src={cdnImage({ src: product.image, width: 150 })}
                       alt={product.name}
-                      class="mr-2 h-8 w-8 rounded"
+                      class="mr-2 size-6 rounded object-cover"
                     />
                     <span>{product.name}</span>
                   </div>
                 </TableCell>
-                <TableCell>{product.handle}</TableCell>
-                <TableCell>Dresses</TableCell>
-                <TableCell class="text-right">{product.price}</TableCell>
-                <TableCell class="text-right">{product.sale_price}</TableCell>
-                <TableCell class="text-right">{product.stock}</TableCell>
-                <TableCell class="text-right">{product.availability}</TableCell>
-                <TableCell class="float-end">
-                  <Switch checked={product.deleted_at === null} />
+                <TableCell class="text-muted-foreground">
+                  {product.handle}
                 </TableCell>
-                <TableCell class="text-right">
-                  <button class="text-red-600 hover:underline">Delete</button>
+                <TableCell class="text-muted-foreground">Dresses</TableCell>
+                <TableCell class="text-right text-muted-foreground">
+                  {product.variants[0].prices[0].currency_symbol}
+                  {product.variants[0].prices[0].price}
+                </TableCell>
+                <TableCell class="text-right text-muted-foreground">
+                  {product.variants[0].prices[0].currency_symbol}
+                  {product.variants[0].prices[0].sale_price}
+                </TableCell>
+                <TableCell class="flex items-center justify-end gap-4 text-right text-muted-foreground">
+                  {product.variants[0].available}
+                  <Switch checked={product.is_published} />
                 </TableCell>
               </TableRow>
             )}

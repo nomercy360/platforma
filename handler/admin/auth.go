@@ -91,8 +91,9 @@ func HashPassword(password string) (string, error) {
 }
 
 type CreateUserRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Email    string  `json:"email" validate:"required,email"`
+	Password string  `json:"password" validate:"required"`
+	Name     *string `json:"name"`
 }
 
 func (a Admin) CreateUser(c echo.Context) error {
@@ -110,7 +111,7 @@ func (a Admin) CreateUser(c echo.Context) error {
 		return terrors.InternalServerError(err, "Failed to hash password")
 	}
 
-	user, err := a.s.CreateUser(req.Email, hashedPassword)
+	user, err := a.s.CreateUser(req.Email, hashedPassword, req.Name)
 	if err != nil {
 		return terrors.InternalServerError(err, "Failed to create user")
 	}
@@ -127,4 +128,13 @@ func (a Admin) GetUserMe(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, user)
+}
+
+func (a Admin) ListUsers(c echo.Context) error {
+	users, err := a.s.ListUsers()
+	if err != nil {
+		return terrors.InternalServerError(err, "failed to list customers")
+	}
+
+	return c.JSON(http.StatusOK, users)
 }

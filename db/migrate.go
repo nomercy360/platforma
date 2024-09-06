@@ -188,9 +188,27 @@ func (s Storage) Migrate() error {
 			password TEXT NOT NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			name TEXT,
 			deleted_at TIMESTAMP,
 			role TEXT NOT NULL DEFAULT 'user',
 			UNIQUE(email)
+		);
+
+		CREATE TABLE IF NOT EXISTS product_categories (
+			id INTEGER PRIMARY KEY,
+			name TEXT,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			deleted_at TIMESTAMP,
+			UNIQUE(name)
+		);
+
+		CREATE TABLE IF NOT EXISTS product_category_products (
+			product_id INTEGER,
+			category_id INTEGER,
+			UNIQUE(product_id, category_id),
+			FOREIGN KEY (product_id) REFERENCES products (id),
+			FOREIGN KEY (category_id) REFERENCES product_categories (id)
 		);
  	`
 

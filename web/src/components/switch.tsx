@@ -17,10 +17,10 @@ const Switch: Component<RootProps> = (props) => {
             <SwitchPrimitive.Input/>
             <div class="items-top flex">
                 <SwitchPrimitive.Control
-                    class="peer inline-flex h-[24px] w-[40px] shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-input transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[checked]:bg-primary">
+                    class="peer inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-input transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[checked]:bg-teal-600">
                     <SwitchPrimitive.Thumb
                         class={cn(
-                            "pointer-events-none block size-5 translate-x-0 rounded-full bg-background shadow-lg ring-0 transition-transform data-[checked]:translate-x-4"
+                            "pointer-events-none block size-3 translate-x-0 rounded-full bg-background shadow-lg ring-0 transition-transform data-[checked]:translate-x-3",
                         )}
                     />
                 </SwitchPrimitive.Control>
