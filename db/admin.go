@@ -11,36 +11,19 @@ type User struct {
 	CreatedAt time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at" json:"updated_at"`
 	DeletedAt *time.Time `db:"deleted_at" json:"deleted_at"`
+	AvatarURL string     `db:"avatar_url" json:"avatar_url"`
 	Role      string     `db:"role" json:"role"`
 	Name      *string    `db:"name" json:"name"`
 }
 
-type UserQuery struct {
-	Email string
-	ID    int64
-}
-
-func (s Storage) GetUser(query UserQuery) (*User, error) {
+func (s Storage) getUserByQuery(query string, args ...interface{}) (*User, error) {
 	var user User
-	var args interface{}
 
-	q := `
-		SELECT id, email, name, password, created_at, updated_at, deleted_at
-		FROM users
-	`
-
-	if query.Email != "" {
-		q += " WHERE email = ?"
-		args = query.Email
-	} else {
-		q += " WHERE id = ?"
-		args = query.ID
-	}
-
-	err := s.db.QueryRow(q, args).Scan(
+	err := s.db.QueryRow(query, args...).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Name,
+		&user.AvatarURL,
 		&user.Password,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -56,31 +39,43 @@ func (s Storage) GetUser(query UserQuery) (*User, error) {
 	return &user, nil
 }
 
-func (s Storage) CreateUser(email, hashedPassword string, name *string) (*User, error) {
+func (s Storage) GetUserByEmail(email string) (*User, error) {
 	query := `
-		INSERT INTO users (email, name, password, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-		RETURNING id, created_at, updated_at
+		SELECT id, email, name, avatar_url, password, created_at, updated_at, deleted_at
+		FROM users WHERE email = ?
+	`
+	return s.getUserByQuery(query, email)
+}
+
+func (s Storage) GetUserByID(id int64) (*User, error) {
+	query := `
+		SELECT id, email, name, avatar_url, password, created_at, updated_at, deleted_at
+		FROM users WHERE id = ?
+	`
+	return s.getUserByQuery(query, id)
+}
+
+func (s Storage) CreateUser(user User) (*User, error) {
+	query := `
+		INSERT INTO users (email, name, avatar_url, password, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	now := time.Now()
-	var user User
-
-	if err := s.db.QueryRow(query, email, name, hashedPassword, now, now).Scan(
-		&user.ID,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	); err != nil {
+	res, err := s.db.Exec(query, user.Email, user.Name, user.AvatarURL, user.Password, user.CreatedAt, user.UpdatedAt)
+	if err != nil {
 		return nil, err
 	}
 
-	user.Email = email
-	return &user, nil
+	if id, err := res.LastInsertId(); err != nil {
+		return nil, err
+	} else {
+		return s.GetUserByID(id)
+	}
 }
 
 func (s Storage) ListUsers() ([]User, error) {
 	query := `
-		SELECT id, email, created_at, updated_at, deleted_at, role, name
+		SELECT id, email, name, role, avatar_url, created_at, updated_at, deleted_at
 		FROM users
 	`
 
@@ -98,11 +93,12 @@ func (s Storage) ListUsers() ([]User, error) {
 		if err := rows.Scan(
 			&user.ID,
 			&user.Email,
+			&user.Name,
+			&user.Role,
+			&user.AvatarURL,
 			&user.CreatedAt,
 			&user.UpdatedAt,
 			&user.DeletedAt,
-			&user.Role,
-			&user.Name,
 		); err != nil {
 			return nil, err
 		}

@@ -189,6 +189,7 @@ func (s Storage) Migrate() error {
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			name TEXT,
+			avatar_url TEXT,
 			deleted_at TIMESTAMP,
 			role TEXT NOT NULL DEFAULT 'user',
 			UNIQUE(email)

@@ -10,13 +10,19 @@ import {
 } from '~/components/table'
 import { SearchInput } from '~/components/input'
 import { createQuery } from '@tanstack/solid-query'
-import { createUser, listCustomers, listUsers } from '~/lib/api'
+import { createUser, listUsers } from '~/lib/api'
 import { IconClose, IconPlus } from '~/components/icons'
+import { Checkbox } from '~/components/checkbox'
+import { useTableSelection } from '~/lib/table'
 
 export type User = {
   id: number
   name: string
   email: string
+  avatar_url: string
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
   role: string
 }
 
@@ -34,7 +40,7 @@ export default function UsersPage() {
   })
 
   const query = createQuery(() => ({
-    queryKey: ['customers'],
+    queryKey: ['users'],
     queryFn: async () => {
       const { data } = await listUsers()
       return data as User[]
@@ -47,6 +53,8 @@ export default function UsersPage() {
     await query.refetch()
     setSideMenuIsOpen(false)
   }
+
+  const { selected, toggleSelection, toggleSelectAll } = useTableSelection()
 
   return (
     <div class="flex min-h-screen w-full flex-col rounded-tl-2xl bg-background">
@@ -132,18 +140,41 @@ export default function UsersPage() {
         <TableCaption>A list of CRM users</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Name</TableHead>
+            <TableHead class="w-8">
+              <Checkbox
+                checked={selected().length === query.data?.length}
+                onChange={() => toggleSelectAll(query.data!)}
+              />
+            </TableHead>
+            <TableHead>Nickname</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead class="text-right">Role</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <For each={query.data}>
             {(user) => (
               <TableRow>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>{user.name}</TableCell>
-                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Checkbox
+                    onChange={() => toggleSelection(user.id)}
+                    checked={selected().includes(user.id)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <div class="flex items-center">
+                    <img
+                      src={user.avatar_url}
+                      alt={user.name}
+                      class="mr-2 size-6 rounded object-cover"
+                    />
+                    <span>{user.name}</span>
+                  </div>
+                </TableCell>
+                <TableCell class="text-muted-foreground">
+                  {user.email}
+                </TableCell>
+                <TableCell class="text-right">{user.role}</TableCell>
               </TableRow>
             )}
           </For>

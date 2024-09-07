@@ -1,4 +1,4 @@
-import { createSignal, For } from 'solid-js'
+import { For } from 'solid-js'
 import {
   Table,
   TableBody,
@@ -9,18 +9,8 @@ import {
   TableRow,
 } from '~/components/table'
 import { SearchInput } from '~/components/input'
-import { Switch } from '~/components/switch'
-import { ToggleGroup, ToggleGroupItem } from '~/components/toggle-group'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/select'
 import { createQuery } from '@tanstack/solid-query'
-import { fetchProducts, listCustomers } from '~/lib/api'
-import { Product } from '~/routes/index'
+import { listCustomers } from '~/lib/api'
 
 export type Customer = {
   id: number
@@ -35,7 +25,7 @@ export type Customer = {
   deleted_at: string
 }
 
-export default function UsersPage() {
+export default function CustomersPage() {
   const query = createQuery(() => ({
     queryKey: ['customers'],
     queryFn: async () => {
@@ -49,11 +39,11 @@ export default function UsersPage() {
       <div class="flex w-full flex-row items-center justify-between p-4">
         <SearchInput
           class="w-96 bg-background"
-          placeholder="Search by name, email, or nickname"
+          placeholder="Search by name, email, or country"
         />
       </div>
       <Table>
-        <TableCaption>A list of CRM users</TableCaption>
+        <TableCaption>A list of shop customers</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>ID</TableHead>

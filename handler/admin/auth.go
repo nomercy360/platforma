@@ -1,9 +1,11 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
+	"math/rand"
 	"net/http"
 	"rednit/db"
 	"rednit/terrors"
@@ -53,7 +55,7 @@ func (a Admin) LoginUser(c echo.Context) error {
 		return terrors.BadRequest(err, "Invalid request")
 	}
 
-	user, err := a.s.GetUser(db.UserQuery{Email: req.Email})
+	user, err := a.s.GetUserByEmail(req.Email)
 	if err != nil {
 		return terrors.Unauthorized(err, "Unauthorized")
 	}
@@ -111,18 +113,28 @@ func (a Admin) CreateUser(c echo.Context) error {
 		return terrors.InternalServerError(err, "Failed to hash password")
 	}
 
-	user, err := a.s.CreateUser(req.Email, hashedPassword, req.Name)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	avatarURL := fmt.Sprintf("https://assets.clanplatform.com/avatar%d.svg", r.Intn(10)+1)
+
+	user := db.User{
+		Email:     req.Email,
+		Password:  hashedPassword,
+		Name:      req.Name,
+		AvatarURL: avatarURL,
+	}
+
+	res, err := a.s.CreateUser(user)
 	if err != nil {
 		return terrors.InternalServerError(err, "Failed to create user")
 	}
 
-	return c.JSON(http.StatusCreated, user)
+	return c.JSON(http.StatusCreated, res)
 }
 
 func (a Admin) GetUserMe(c echo.Context) error {
 	uid := getUserID(c)
 
-	user, err := a.s.GetUser(db.UserQuery{ID: uid})
+	user, err := a.s.GetUserByID(uid)
 	if err != nil {
 		return terrors.InternalServerError(err, "Failed to get user")
 	}

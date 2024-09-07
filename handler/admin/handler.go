@@ -6,8 +6,9 @@ import (
 )
 
 type storage interface {
-	GetUser(db.UserQuery) (*db.User, error)
-	CreateUser(string, string, *string) (*db.User, error)
+	GetUserByID(id int64) (*db.User, error)
+	GetUserByEmail(email string) (*db.User, error)
+	CreateUser(user db.User) (*db.User, error)
 	ListCustomers() ([]db.Customer, error)
 	ListDiscounts() ([]db.Discount, error)
 	ListOrders() ([]db.Order, error)

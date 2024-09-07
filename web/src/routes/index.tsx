@@ -11,18 +11,13 @@ import {
 import { SearchInput } from '~/components/input'
 import { Switch } from '~/components/switch'
 import { ToggleGroup, ToggleGroupItem } from '~/components/toggle-group'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/select'
 import { fetchProducts, getLoggedInUser } from '~/lib/api'
 import { createQuery } from '@tanstack/solid-query'
 import { useNavigate } from '@solidjs/router'
 import { Checkbox } from '~/components/checkbox'
-import { Separator } from '~/components/separator'
+import { useTableSelection } from '~/lib/table'
+import { createStore } from 'solid-js/store'
+import { User } from '~/routes/users'
 
 type Product = {
   id: number
@@ -50,9 +45,7 @@ type Product = {
 }
 
 export default function IndexPage() {
-  const [value, setValue] = createSignal<string | null>(null)
-
-  const [selected, setSelected] = createSignal<Array<string>>([])
+  const { selected, toggleSelection, toggleSelectAll } = useTableSelection()
 
   const navigate = useNavigate()
 
@@ -63,14 +56,6 @@ export default function IndexPage() {
       return data as Product[]
     },
   }))
-
-  createEffect(async () => {
-    console.log('checking user')
-    const { data, error } = await getLoggedInUser()
-    if (error) {
-      navigate('/auth/login')
-    }
-  })
 
   const normalizeSrc = (src: string) => {
     return src.startsWith('/') ? src.slice(1) : src
@@ -94,7 +79,7 @@ export default function IndexPage() {
   }
 
   return (
-    <div class="flex min-h-screen w-full flex-col rounded-tl-2xl bg-background pb-10">
+    <>
       <div class="flex w-full flex-row items-center justify-between p-4">
         <SearchInput
           class="w-96 bg-background"
@@ -127,13 +112,7 @@ export default function IndexPage() {
             <TableHead class="w-10">
               <Checkbox
                 checked={selected().length === query.data?.length}
-                onChange={() =>
-                  selected().length === query.data?.length
-                    ? setSelected([])
-                    : setSelected(
-                        query.data!.map((product) => product.id.toString()),
-                      )
-                }
+                onChange={() => toggleSelectAll(query.data!)}
               />
             </TableHead>
             <TableHead>Item</TableHead>
@@ -150,18 +129,8 @@ export default function IndexPage() {
               <TableRow>
                 <TableCell>
                   <Checkbox
-                    onChange={
-                      selected().includes(product.id.toString())
-                        ? () =>
-                            setSelected(
-                              selected().filter(
-                                (id) => id !== product.id.toString(),
-                              ),
-                            )
-                        : () =>
-                            setSelected([...selected(), product.id.toString()])
-                    }
-                    checked={selected().includes(product.id.toString())}
+                    onChange={() => toggleSelection(product.id)}
+                    checked={selected().includes(product.id)}
                   />
                 </TableCell>
                 <TableCell>
@@ -195,6 +164,6 @@ export default function IndexPage() {
           </For>
         </TableBody>
       </Table>
-    </div>
+    </>
   )
 }

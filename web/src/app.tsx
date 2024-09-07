@@ -5,6 +5,7 @@ import Navbar from '~/components/navbar'
 import './app.css'
 import Controls from '~/components/controls'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
+import { AuthProvider } from '~/lib/auth-context'
 
 export const queryClient = new QueryClient()
 
@@ -20,13 +21,17 @@ export default function App() {
               </main>
             </Match>
             <Match when={props.location.pathname !== '/login'}>
-              <div class="min-h-screen">
-                <Controls />
-                <div class="flex flex-row items-start">
-                  <Navbar />
-                  <Suspense>{props.children}</Suspense>
+              <AuthProvider>
+                <div class="min-h-screen">
+                  <Controls />
+                  <div class="flex flex-row items-start">
+                    <Navbar />
+                    <div class="ml-14 flex min-h-screen w-full flex-col rounded-tl-2xl bg-background pb-10">
+                      <Suspense>{props.children}</Suspense>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </AuthProvider>
             </Match>
           </Switch>
         )}>
