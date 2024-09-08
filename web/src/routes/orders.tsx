@@ -21,6 +21,8 @@ import { createQuery } from '@tanstack/solid-query'
 import { listOrders } from '~/lib/api'
 import { Customer } from '~/routes/customers'
 import { cn } from '~/lib/utils'
+import SideMenu from '~/components/side-menu'
+import { createStore } from 'solid-js/store'
 
 type LineItem = {
   id: number
@@ -78,8 +80,70 @@ export default function OrdersPage() {
     return { dateString, yearString }
   }
 
+  const [editOrder, setEditOrder] = createSignal<Order | null>(null)
+
+  const [sideMenuIsOpen, setSideMenuIsOpen] = createSignal(false)
+
+  async function onFormSubmit() {
+    console.log('onFormSubmit')
+  }
+
+  function openSideMenu(order: Order) {
+    setEditOrder(order)
+    setSideMenuIsOpen(true)
+  }
+
+  function getDateString(date?: string) {
+    if (!date) return ''
+    const dateObj = new Date(date)
+
+    return `${formatDate(dateObj).dateString} ${formatDate(dateObj).yearString}`
+  }
+
   return (
     <div class="flex min-h-screen w-full flex-col rounded-tl-2xl bg-background">
+      <SideMenu
+        title={`${editOrder()?.id} for ${editOrder()?.customer.name}`}
+        subtitle={`${getDateString(editOrder()?.created_at)} / Payed via ${editOrder()?.payment_provider}`}
+        isOpen={sideMenuIsOpen()}
+        setIsOpen={setSideMenuIsOpen}>
+        <form
+          class="flex w-full flex-col space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            onFormSubmit()
+          }}>
+          <label class="text-sm font-semibold" for="name">
+            <input
+              class="mt-1 h-11 w-full rounded-lg border border-neutral-200 bg-background p-2"
+              id="name"
+              type="text"
+              placeholder="John Doe"
+            />
+          </label>
+          <label class="text-sm font-semibold" for="email">
+            <input
+              class="h-11 w-full rounded-lg border border-neutral-200 bg-background p-2"
+              id="email"
+              type="email"
+              placeholder="dummy@example.com"
+            />
+          </label>
+          <label class="text-sm font-semibold" for="password">
+            <input
+              class="mt-1 h-11 w-full rounded-lg border border-neutral-200 bg-background p-2"
+              id="password"
+              type="password"
+              placeholder="********"
+            />
+          </label>
+          <button
+            class="mt-4 w-full rounded bg-primary p-2 text-white"
+            type="submit">
+            Add User
+          </button>
+        </form>
+      </SideMenu>
       <div class="flex w-full flex-row items-center justify-between p-4">
         <SearchInput
           class="w-96 bg-background"
@@ -119,7 +183,9 @@ export default function OrdersPage() {
         <TableBody>
           <For each={query.data}>
             {(order) => (
-              <TableRow>
+              <TableRow
+                class="cursor-pointer"
+                onClick={() => openSideMenu(order)}>
                 <TableCell>
                   <div class="flex flex-col space-y-0.5">
                     {order.id}

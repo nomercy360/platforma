@@ -21,7 +21,7 @@ const Separator = <T extends ValidComponent = 'hr'>(
       orientation={local.orientation ?? 'horizontal'}
       class={cn(
         'shrink-0 bg-teal-600',
-        local.orientation === 'vertical' ? 'h-full w-px' : 'h-4 w-full',
+        local.orientation === 'vertical' ? 'h-full w-px' : 'h-px w-full',
         local.class,
       )}
       {...others}
