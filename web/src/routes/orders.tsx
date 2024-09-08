@@ -1,4 +1,4 @@
-import { createSignal, For, JSX } from 'solid-js'
+import { createSignal, For } from 'solid-js'
 import {
   Table,
   TableBody,
@@ -9,7 +9,6 @@ import {
   TableRow,
 } from '~/components/table'
 import { SearchInput } from '~/components/input'
-import { Switch } from '~/components/switch'
 import { ToggleGroup, ToggleGroupItem } from '~/components/toggle-group'
 import {
   Select,
@@ -19,8 +18,9 @@ import {
   SelectValue,
 } from '~/components/select'
 import { createQuery } from '@tanstack/solid-query'
-import { listCustomers, listOrders } from '~/lib/api'
+import { listOrders } from '~/lib/api'
 import { Customer } from '~/routes/customers'
+import { cn } from '~/lib/utils'
 
 type LineItem = {
   id: number
@@ -44,7 +44,6 @@ type Order = {
   cart_id: number
   status: string
   payment_status: string
-  shipping_status: string
   total: number
   subtotal: number
   discount_id: number | null
@@ -69,41 +68,28 @@ export default function OrdersPage() {
     },
   }))
 
+  function formatDate(date: Date) {
+    const optionsDate = { month: 'long', day: 'numeric' }
+    const optionsYear = { year: 'numeric' }
+
+    const dateString = date.toLocaleDateString('en-US', optionsDate)
+    const yearString = date.toLocaleDateString('en-US', optionsYear)
+
+    return { dateString, yearString }
+  }
+
   return (
     <div class="flex min-h-screen w-full flex-col rounded-tl-2xl bg-background">
       <div class="flex w-full flex-row items-center justify-between p-4">
         <SearchInput
           class="w-96 bg-background"
-          placeholder="Search by number, name, location, email, etc."
+          placeholder="Start typing to search or filter products"
         />
-        <Select
-          value={value()}
-          onChange={setValue}
-          options={[
-            'Id',
-            'Item',
-            'SKU',
-            'Category',
-            'Price',
-            'Stock',
-            'Availability',
-          ]}
-          placeholder={'Sort by...'}
-          itemComponent={(props) => (
-            <SelectItem item={props.item}>{props.item.rawValue}</SelectItem>
-          )}>
-          <SelectTrigger aria-label="Fruit" class="w-[160px] bg-background">
-            <SelectValue<string>>
-              {(state) => 'Sort by ' + state.selectedOption()}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent />
-        </Select>
       </div>
       <div class="flex w-full flex-row items-start p-4">
         <ToggleGroup>
-          <ToggleGroupItem value="all">
-            All <span class="text-muted-foreground">64</span>
+          <ToggleGroupItem value="new">
+            New <span class="text-muted-foreground">64</span>
           </ToggleGroupItem>
           <ToggleGroupItem value="gadgets">
             Gadgets <span class="text-muted-foreground">24</span>
@@ -123,34 +109,63 @@ export default function OrdersPage() {
         <TableCaption>A list of your recent products.</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead class="w-40">#</TableHead>
+            <TableHead>ID</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Delivery to</TableHead>
             <TableHead>Customer</TableHead>
             <TableHead>E-mail</TableHead>
-            <TableHead>Notes</TableHead>
-            <TableHead class="text-right">Items and payment</TableHead>
+            <TableHead class="text-right">Payment</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <For each={query.data}>
             {(order) => (
               <TableRow>
-                <TableCell class="flex flex-row items-center gap-2">
-                  {order.id} <Chip text={order.status} />
+                <TableCell>
+                  <div class="flex flex-col space-y-0.5">
+                    {order.id}
+                    <OrderStatus text={order.status}></OrderStatus>
+                  </div>
                 </TableCell>
                 <TableCell>
-                  {new Date(order.created_at).toLocaleDateString()}
+                  <div class="flex flex-col space-y-0.5">
+                    {formatDate(new Date(order.created_at)).dateString}
+                    <span class="text-sm text-muted-foreground">
+                      {formatDate(new Date(order.created_at)).yearString}
+                    </span>
+                  </div>
                 </TableCell>
-                <TableCell>{order.customer.address}</TableCell>
-                <TableCell>{order.customer.name}</TableCell>
-                <TableCell>{order.customer.email}</TableCell>
-                <TableCell>{order.metadata?.comment}</TableCell>
-                <TableCell class="flex flex-row justify-end gap-2">
-                  <span>
-                    {order.items?.length} items for{' '}
-                    {order.total.toLocaleString()} {order.currency_code}
-                  </span>
+                <TableCell>
+                  <div class="flex flex-col space-y-0.5">
+                    {order.customer.name}
+                    <span class="text-sm text-muted-foreground">
+                      {order.customer.address}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div class="flex flex-col space-y-0.5">
+                    {order.customer.email}
+                    <span class="text-sm text-muted-foreground">
+                      {order.customer.phone}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell class="flex flex-row justify-end">
+                  <div class="flex flex-col space-y-0.5">
+                    <div class="flex flex-row items-center space-x-2">
+                      <span>
+                        {order.total.toLocaleString()} {order.currency_code}
+                      </span>
+                      <span
+                        class={cn('size-2 rounded-full', {
+                          'bg-green-500': order.payment_status === 'paid',
+                          'bg-red-500': order.payment_status !== 'paid',
+                        })}></span>
+                    </div>
+                    <span class="text-sm text-muted-foreground">
+                      {order.payment_provider}
+                    </span>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -161,33 +176,28 @@ export default function OrdersPage() {
   )
 }
 
-function Chip({ text }: { text: string }) {
+function OrderStatus({ text }: { text: string }) {
   let color
 
   switch (text) {
     case 'created':
-      color = 'bg-green-200 text-green-800'
+      color = 'text-green-500'
       break
     case 'Overdue':
-      color = 'bg-red-200 text-red-800'
+      color = 'text-red-500'
       break
     case 'Refund':
-      color = 'bg-purple-200 text-purple-800'
+      color = 'text-purple-500'
       break
     case 'Delivering':
-      color = 'bg-yellow-200 text-yellow-800'
+      color = 'text-yellow-500'
       break
     case 'Completed':
-      color = 'bg-neutral-200 text-neutral-800'
+      color = 'text-neutral-500'
       break
     default:
       break
   }
 
-  return (
-    <span
-      class={`flex h-6 items-center justify-center rounded-full px-2 py-1 text-sm ${color}`}>
-      {text}
-    </span>
-  )
+  return <span class={`text-sm capitalize ${color}`}>{text}</span>
 }

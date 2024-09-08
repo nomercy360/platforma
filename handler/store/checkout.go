@@ -94,9 +94,8 @@ func (h Handler) Checkout(c echo.Context) error {
 
 	newOrder := db.Order{
 		CustomerID:      customer.ID,
-		Status:          "created",
-		PaymentStatus:   "pending",
-		ShippingStatus:  "pending",
+		Status:          db.OrderNew,
+		PaymentStatus:   db.PaymentPending,
 		Metadata:        req.Metadata,
 		CartID:          cart.ID,
 		Total:           cart.Total,
@@ -283,7 +282,7 @@ func (h Handler) CapturePaypalPayment(c echo.Context) error {
 		return terrors.InternalServerError(err, "failed to get order")
 	}
 
-	order.PaymentStatus = "paid"
+	order.PaymentStatus = db.PaymentPaid
 
 	if _, err = h.st.UpdateOrder(order); err != nil {
 		return terrors.InternalServerError(err, "failed to update order")

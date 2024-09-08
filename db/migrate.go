@@ -139,7 +139,6 @@ func (s Storage) Migrate() error {
 		    payment_provider TEXT,
 			payment_id TEXT,
 		    currency_code TEXT,
-		    shipping_status TEXT,
 		    shipping_method_id INTEGER,
 		    total INTEGER,
 		    subtotal INTEGER,

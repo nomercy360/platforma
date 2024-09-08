@@ -74,13 +74,13 @@ func (h Handler) BepaidNotification(c echo.Context) error {
 
 	switch req.Transaction.Status {
 	case "successful":
-		order.PaymentStatus = "paid"
+		order.PaymentStatus = db.PaymentPaid
 	case "failed":
-		order.PaymentStatus = "failed"
+		order.PaymentStatus = db.PaymentFailed
 	case "incomplete":
-		order.PaymentStatus = "pending"
+		order.PaymentStatus = db.PaymentPending
 	case "expired":
-		order.PaymentStatus = "pending"
+		order.PaymentStatus = db.PaymentFailed
 	default:
 		return terrors.BadRequest(errors.New(fmt.Sprintf("bepaid: invalid status %s", req.Transaction.Status)), "invalid status")
 	}
@@ -93,7 +93,7 @@ func (h Handler) BepaidNotification(c echo.Context) error {
 		return err
 	}
 
-	if order.PaymentStatus == "paid" {
+	if order.PaymentStatus == db.PaymentPaid {
 		go func() {
 			h.telegramOrderPaid(*order)
 		}()
